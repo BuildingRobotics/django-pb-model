@@ -321,8 +321,8 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         :returns: Django model instance
         """
         _dj_field_map = {f.name: f for f in self._meta.get_fields()}
-        LOGGER.debug("ListFields() return fields which contains value only")
-        for _f, _v in _pb_obj.ListFields():
+        for _f in _pb_obj.DESCRIPTOR.fields:
+            _v = getattr(_pb_obj, _f.name)
             _dj_f_name = self.pb_2_dj_field_map.get(_f.name, _f.name)
             _dj_f_type = _dj_field_map[_dj_f_name]
             if _f.message_type is not None:
