@@ -20,10 +20,6 @@ if settings.DEBUG:
     LOGGER.setLevel(logging.DEBUG)
 
 
-class DjangoPBModelError(Exception):
-    pass
-
-
 class Meta(type(models.Model)):
     def __init__(self, name, bases, attrs):
         super(Meta, self).__init__(name, bases, attrs)
@@ -235,8 +231,11 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                     else:
                         self._value_to_protobuf(_pb_obj, _f, type(_dj_f_type), _dj_f_value)
             except AttributeError as e:
-                LOGGER.error("Fail to serialize field: {} for {}. Error: {}".format(_dj_f_name, self._meta.model, e))
-                raise DjangoPBModelError("Can't serialize Model({})'s field: {}. Err: {}".format(_dj_f_name, self._meta.model, e))
+                msg = "Failed to serialize field '{}' - {}".format(
+                    _dj_f_name, ' '.join(e.args)
+                )
+                e.args = [msg]
+                raise
 
         LOGGER.info("Converted to Protobuf object: {}".format(pb_to_dict(_pb_obj)))
         return _pb_obj
