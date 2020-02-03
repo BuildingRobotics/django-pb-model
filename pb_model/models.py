@@ -410,13 +410,14 @@ def pb_to_dict(pb_obj):
     if not isinstance(pb_obj, Message):
         return pb_obj
 
-
     result = {}
     for f in pb_obj.DESCRIPTOR.fields:
         name = f.name
+
         value = getattr(pb_obj, f.name)
         if isinstance(value, Message) and not pb_obj.HasField(name):
             value = None
+
         result[name] = pb_to_dict(value)
 
     return result
