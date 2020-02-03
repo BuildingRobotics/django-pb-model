@@ -331,7 +331,8 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
             if _f.message_type is not None:
                 dj_field = _dj_field_map[_dj_f_name]
                 if dj_field.is_relation and not issubclass(type(dj_field), fields.ProtoBufFieldMixin):
-                    self._protobuf_to_relation(_dj_f_name, dj_field, _f, _v)
+                    if _pb_obj.HasField(_f.name):
+                        self._protobuf_to_relation(_dj_f_name, dj_field, _f, _v)
                     continue
             self._protobuf_to_value(_dj_f_name, type(_dj_f_type), _f, _v)
         LOGGER.info("Coveretd Django model instance: {}".format(self))
