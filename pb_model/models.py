@@ -409,6 +409,14 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
 def pb_to_dict(pb_obj):
     if not isinstance(pb_obj, Message):
         return pb_obj
-    return {
-        f.name: pb_to_dict(getattr(pb_obj, f.name)) for f in pb_obj.DESCRIPTOR.fields
-    }
+
+
+    result = {}
+    for f in pb_obj.DESCRIPTOR.fields:
+        name = f.name
+        value = getattr(pb_obj, f.name)
+        if isinstance(value, Message) and not pb_obj.HasField(name):
+            value = None
+        result[name] = pb_to_dict(value)
+
+    return result
