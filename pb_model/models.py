@@ -8,6 +8,7 @@ from django.db import models
 from django.conf import settings
 
 from google.protobuf.descriptor import FieldDescriptor
+from google.protobuf.message import Message
 
 from . import fields
 
@@ -237,7 +238,7 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                 LOGGER.error("Fail to serialize field: {} for {}. Error: {}".format(_dj_f_name, self._meta.model, e))
                 raise DjangoPBModelError("Can't serialize Model({})'s field: {}. Err: {}".format(_dj_f_name, self._meta.model, e))
 
-        LOGGER.info("Coverted Protobuf object: {}".format(_pb_obj))
+        LOGGER.info("Converted to Protobuf object: {}".format(pb_to_dict(_pb_obj)))
         return _pb_obj
 
     def _relation_to_protobuf(self, pb_obj, pb_field, dj_field_type, dj_field_value):
@@ -335,7 +336,7 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                         self._protobuf_to_relation(_dj_f_name, dj_field, _f, _v)
                     continue
             self._protobuf_to_value(_dj_f_name, type(_dj_f_type), _f, _v)
-        LOGGER.info("Coveretd Django model instance: {}".format(self))
+        LOGGER.info("Converted to Django model instance: {}".format(self))
         return self
 
     def _protobuf_to_relation(self, dj_field_name, dj_field, pb_field,
@@ -403,3 +404,11 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         """
         s_funcs = self._get_serializers(dj_field_type)
         s_funcs[1](self, dj_field_name, pb_field, pb_value)
+
+
+def pb_to_dict(pb_obj):
+    if not isinstance(pb_obj, Message):
+        return pb_obj
+    return {
+        f.name: pb_to_dict(getattr(pb_obj, f.name)) for f in pb_obj.DESCRIPTOR.fields
+    }
