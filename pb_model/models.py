@@ -3,6 +3,7 @@
 
 import logging
 import six
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.db import models
 from django.conf import settings
@@ -212,33 +213,43 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         super(ProtoBufMixin, self).save(*args, **kwargs)
 
     def to_pb(self):
-        """Convert django model to protobuf instance by pre-defined name
-
-        :returns: ProtoBuf instance
         """
-        _pb_obj = self.pb_model()
-        _dj_field_map = {f.name: f for f in self._meta.get_fields()}
-        for _f in _pb_obj.DESCRIPTOR.fields:
-            _dj_f_name = self.pb_2_dj_field_map.get(_f.name, _f.name)
-            if _dj_f_name not in _dj_field_map:
-                LOGGER.warning("No such django field: {}".format(_f.name))
-                continue
-            try:
-                _dj_f_value, _dj_f_type = getattr(self, _dj_f_name), _dj_field_map[_dj_f_name]
-                if not (_dj_f_type.null and _dj_f_value is None):
-                    if _dj_f_type.is_relation and not issubclass(type(_dj_f_type), fields.ProtoBufFieldMixin):
-                        self._relation_to_protobuf(_pb_obj, _f, _dj_f_type, _dj_f_value)
-                    else:
-                        self._value_to_protobuf(_pb_obj, _f, type(_dj_f_type), _dj_f_value)
-            except AttributeError as e:
-                msg = "Failed to serialize field '{}' - {}".format(
-                    _dj_f_name, ' '.join(e.args)
+        Convert this django model instance to protobuf instance.
+
+        :returns: object of type 'pb_model'
+        """
+        pb_obj = self.pb_model()
+        field_map = {f.name: f for f in self._meta.get_fields()}
+
+        for f in pb_obj.DESCRIPTOR.fields:
+            name = self.pb_2_dj_field_map.get(f.name, f.name)
+
+            if name not in field_map:
+                raise ValueError(
+                    "Field does not exist in django model: '{}'".format(f.name)
                 )
-                e.args = [msg]
+
+            try:
+                try:
+                    dj_value, dj_f = getattr(self, name), field_map[name]
+                except ObjectDoesNotExist:
+                    continue
+
+                if dj_f.null and not dj_f.is_relation:
+                    raise ValueError('nullable fields are not supported by protobuf.')
+
+                if dj_f.is_relation and not issubclass(type(dj_f), fields.ProtoBufFieldMixin):
+                    self._relation_to_protobuf(pb_obj, f, dj_f, dj_value)
+                else:
+                    self._value_to_protobuf(pb_obj, f, type(dj_f), dj_value)
+            except AttributeError as e:
+                e.args = [
+                    "Failed to serialize field '{}' - {}".format(name, ' '.join(e.args))
+                ]
                 raise
 
-        LOGGER.info("Converted to Protobuf object: {}".format(pb_to_dict(_pb_obj)))
-        return _pb_obj
+        LOGGER.info("Converted to Protobuf object: {}".format(pb_to_dict(pb_obj)))
+        return pb_obj
 
     def _relation_to_protobuf(self, pb_obj, pb_field, dj_field_type, dj_field_value):
         """Handling relation to protobuf
