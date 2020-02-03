@@ -34,7 +34,11 @@ def _defaultfield_to_pb(pb_obj, pb_field, dj_field_value):
     LOGGER.debug("Django Value field, assign proto msg field: {} = {}".format(pb_field.name, dj_field_value))
     if sys.version_info < (3,) and type(dj_field_value) is buffer:
         dj_field_value = bytes(dj_field_value)
-    setattr(pb_obj, pb_field.name, dj_field_value)
+    try:
+        setattr(pb_obj, pb_field.name, dj_field_value)
+    except TypeError as e:
+        e.args = ["Failed to serializing field '{}' - {}".format(pb_field.name, e)]
+        raise
 
 
 def _defaultfield_from_pb(instance, dj_field_name, pb_field, pb_value):
