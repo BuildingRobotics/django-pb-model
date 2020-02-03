@@ -166,6 +166,9 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                                fields._datetimefield_from_pb),
         models.UUIDField: (fields._uuid_to_pb,
                            fields._uuid_from_pb),
+        models.FileField: (fields._filefield_to_pb,
+                           fields._defaultfield_from_pb)
+
     }  # dj field in key, serializer function pairs in value
     pb_auto_field_type_mapping = {
         FieldDescriptor.TYPE_DOUBLE: models.FloatField,

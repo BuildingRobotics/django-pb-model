@@ -37,7 +37,7 @@ def _defaultfield_to_pb(pb_obj, pb_field, dj_field_value):
     try:
         setattr(pb_obj, pb_field.name, dj_field_value)
     except TypeError as e:
-        e.args = ["Failed to serializing field '{}' - {}".format(pb_field.name, e)]
+        e.args = ["Failed to serialize field '{}' - {}".format(pb_field.name, e)]
         raise
 
 
@@ -95,6 +95,14 @@ def _uuid_from_pb(instance, dj_field_name, pb_field, pb_value):
     :returns: None
     """
     setattr(instance, dj_field_name, uuid.UUID(pb_value))
+
+
+def _filefield_to_pb(pb_obj, pb_field, dj_value):
+    try:
+        value = dj_value.url
+    except ValueError:
+        value = ''
+    _defaultfield_to_pb(pb_obj, pb_field, value)
 
 
 class ProtoBufFieldMixin(object):
