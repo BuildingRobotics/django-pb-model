@@ -99,7 +99,7 @@ def _uuid_from_pb(instance, dj_field_name, pb_field, pb_value):
 
 def _filefield_to_pb(pb_obj, pb_field, dj_value):
     try:
-        value = dj_value.url
+        value = str(dj_value)
     except ValueError:
         value = ''
     _defaultfield_to_pb(pb_obj, pb_field, value)
