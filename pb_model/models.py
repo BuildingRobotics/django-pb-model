@@ -236,7 +236,9 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                     continue
 
                 if dj_f.null and not dj_f.is_relation:
-                    raise ValueError('nullable fields are not supported by protobuf.')
+                    raise ValueError(
+                        "Failed to serialize field '{}' - nullable fields are not supported by protobuf.".format(dj_name)
+                    )
 
                 if dj_f.is_relation and not issubclass(type(dj_f), fields.ProtoBufFieldMixin):
                     self._relation_to_protobuf(pb_obj, pb_f, dj_f, dj_value)
