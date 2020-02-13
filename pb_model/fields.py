@@ -13,12 +13,7 @@ from django.utils import timezone
 from google.protobuf.descriptor import FieldDescriptor
 
 
-logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.WARNING)
-if settings.DEBUG:
-    LOGGER.setLevel(logging.DEBUG)
-
 
 PB_FIELD_TYPE_TIMESTAMP = FieldDescriptor.MAX_TYPE + 1
 PB_FIELD_TYPE_REPEATED = FieldDescriptor.MAX_TYPE + 2

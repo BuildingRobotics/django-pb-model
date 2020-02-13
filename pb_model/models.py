@@ -14,11 +14,7 @@ from google.protobuf.message import Message
 from . import fields
 
 
-logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.WARNING)
-if settings.DEBUG:
-    LOGGER.setLevel(logging.DEBUG)
 
 
 class Meta(type(models.Model)):
