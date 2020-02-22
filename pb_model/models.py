@@ -231,7 +231,14 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                 except ObjectDoesNotExist:
                     continue
 
-                if dj_f.null and not dj_f.is_relation:
+                if dj_f.null:
+                    if pb_f.message_type is not None:
+                        # support for wrapper types.
+                        #
+                        # Of course, they can't be "None", but they can be "unset"
+                        # (which is the default, so just skip them here.)
+                        continue
+
                     raise ValueError(
                         "Failed to serialize field '{}' - nullable fields are not supported by protobuf.".format(dj_name)
                     )
