@@ -231,7 +231,7 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                 except ObjectDoesNotExist:
                     continue
 
-                if dj_f.null:
+                if dj_value is None:
                     if pb_f.message_type is not None:
                         # support for wrapper types.
                         #
