@@ -6,30 +6,62 @@ django-pb-model
 
 .. image:: https://img.shields.io/pypi/v/django-pb-model.svg
        :target: https://pypi.python.org/pypi/django-pb-model
+.. image:: https://coveralls.io/repos/myyang/django-pb-model/badge.svg?service=github :target: https://coveralls.io/github/myyang/django-pb-model
 
 
 Django-pb-model provides model mixin mapping/converting protobuf message.
-Currently support basic value fields and naive relation convertion, including:
+Automatic model generation from protobuf message definitions is supported.
+Currently support basic value fields and naive relation conversion, including:
 
 * Integer, String, Float, Boolean
 * Choices field
 * Datetime
-* Foriegn Key and Many-to-Many relation
+* Foreign Key and Many-to-Many relation
+* `Custom fields`_, ex: JSON
 
 You could examine testcases_ for more details
 
 .. _testcases: https://github.com/myyang/django-pb-model/tree/master/pb_model/tests
+.. _Custom fields: https://github.com/myyang/django-pb-model#custom-fields
 
 And PRs are always welcome :))
 
+Table of Content
+------------------------
+
+  * Compatibility_
+  * Install_
+  * Usage_
+  * `Automatic field generation`_
+  * `Field details`_
+
+    * `Field name mapping`_
+    * `Foreign Key`_
+    * `Many-to-Many field`_
+
+      * `Django to Protobuf`_
+      * `Protobuf to Django`_
+
+    * `Datetime Field`_
+    * `Custom Fields`_
+
+      * Timezone_
 
 Compatibility
 -------------
 
-Currnetly tested with metrics:
+Currently tested with metrics:
 
-* Python2.7, 3.4, 3.5, 3.6
-* Django1.8, 1,9, 1.10, 1.11
++---------------+-----+-----+-----+-----+-----+
+| Django/Python | 2.7 | 3.5 | 3.6 | 3.7 | 3.8 |
++---------------+-----+-----+-----+-----+-----+
+| 1.11.x        |  v  |     |     |     |     |
++---------------+-----+-----+-----+-----+-----+
+| 2.2.x         |     |  v  |  v  |  v  |     |
++---------------+-----+-----+-----+-----+-----+
+| 3.0.x         |     |     |  v  |  v  |  v  |
++---------------+-----+-----+-----+-----+-----+
+
 
 Install
 -------
@@ -40,7 +72,7 @@ Install
 
     pip install django-pb-model
 
-2. Add django-pb to django settings.py
+2. Add django-pb to django ``settings.py``
 
 .. code:: python
 
@@ -63,25 +95,25 @@ Install
 Usage
 -----
 
-Declare your protobuf message and compile it. For example:
+Declare your protobuf message file, such as ``account.proto``, and compile it. For example:
 
 .. code:: protobuf
 
    message Account {
        int id = 1;
        string email = 2;
-       string password = 3;
+       string nickname = 3;
    }
 
-as `account.proto` file. Then compile it with:
+Then compile it with:
 
 .. code:: shell
 
    $ protoc --python_out=. account.proto
 
-You will get `account_pb2.py`.
+You will get ``account_pb2.py``.
 
-Now you can interact with your protobuf model, add `ProtoBufMixin` to your model like:
+Now you can interact with your protobuf model, add ``ProtoBufMixin`` to your model like:
 
 .. code:: python
 
@@ -93,38 +125,76 @@ Now you can interact with your protobuf model, add `ProtoBufMixin` to your model
         pb_model = account_pb2.Account
 
         email = models.EmailField(max_length=64)
-        password = models.CharField(max_length=64)
+        nickname = models.CharField(max_length=64)
 
         def __str__(self):
-            # For demo only, encrypt password and DO NOT expose
-            return "Username: {a.email}, passowrd: {a.password}".format(a=self)
+            return "Username: {a.email}, nickname: {a.nickname}".format(a=self)
 
 
-By above settings, you can covert between django model and protobuf easily.
+By above settings, you can convert between django model and protobuf easily. For example:
 
 .. code:: python
 
-   >>> account = Account.objects.create(email='user@email.com', password='passW0rd')
+   >>> account = Account.objects.create(email='user@email.com', nickname='moonmoon')
    >>> account.to_pb()
    email: "user@email.com"
-   passord: "passW0rd"
+   nickname: "moonmoon"
 
    >>> account2 = Account()
    >>> account2.from_pb(account.to_pb())
-   <Account: Username: username@mail, password: passW0rd>
-   
+   <Account: Username: username@mail, nickname: moonmoon>
+
+
+Automatic field generation
+--------------------------
+
+To automatically generate django model fields based on protobuf field types.
+
+If you don't want to manually specify fields in your django model, you can list names of desired fields under ``pb_2_dj_fields`` attribute to have those generated and added to your model automatically.
+
+.. code:: python
+
+    class Account(ProtoBufMixin, models.Model):
+        pb_model = account_pb2.Account
+        pb_2_dj_fields = ['email', 'nickname']
+
+
+Alternatively if you want all protobuf fields to be mapped you can do ``pb_2_dj_fields = '__all__'``.
+
+Fields listed in ``pb_2_dj_fields`` can be overwritten using manual definition.
+
+.. code:: python
+
+    class Account(ProtoBufMixin, models.Model):
+        pb_model = account_pb2.Account
+        pb_2_dj_fields = '__all__'
+        
+        email = models.EmailField(max_length=64)
+
+
+Type of generated field depends on corresponding protobuf field type. If you want to change default field type mappings you can overwrite those using ``pb_auto_field_type_mapping`` attribute.
+
+Following protobuf field types are supported:
+
+* uint32, int32, uint64, int64, float, double, bool, Enum
+* string, bytes
+* google.protobuf.Timestamp
+* Messages
+* oneof fields
+* repeated scalar and Message fields
+* map fields with scalar as key and scalar or Message as value
 
 Field details
 -------------
 
-There are several special field types while converting, read following section for more details.
+There are several special field types while converting, read following sections.
 
 Field name mapping
 ~~~~~~~~~~~~~~~~~~~~~
 
 To adapt schema migration, field mapping are expected.
 
-For example, the `email` field in previous session is altered to `username`, but we don't want to break the consistance of protobuf protocol. You may add `pb_2_dj_field_map` attribute to solve this problem. Such as:
+For example, the ``email`` field in previous session is altered to ``username``, but we don't want to break the consistence of protobuf protocol. You may add ``pb_2_dj_field_map`` attribute to solve this problem. Such as:
 
 .. code:: python
 
@@ -135,12 +205,12 @@ For example, the `email` field in previous session is altered to `username`, but
         }
 
         username = models.CharField(max_length=64)
-        password = models.CharField(max_length=64)
+        nickname = models.CharField(max_length=64)
 
-Foriegn Key
+Foreign Key
 ~~~~~~~~~~~
 
-Foriegn key is a connect to another model in Django. According to this property, the foreign key could and should be converted to nested singular message in Protobuf. For example:
+Foreign key is a connect to another model in Django. According to this property, the foreign key could and should be converted to nested singular message in Protobuf. For example:
 
 .. code:: Protobuf
 
@@ -160,14 +230,14 @@ Django model:
    class Relation(ProtoBufMixin, models.Model):
        pb_model = models_pb2.Relation
 
-   
+
    class Main(ProtoBufMixin, models.Model):
        pb_model = models_pb2.Main
 
-       fk = models.ForiegnKey(Relation)
+       fk = models.ForeignKey(Relation)
 
 
-With above settings, pb_model would recursivly serialize and de-serialize bewteen Django and ProtoBuf.
+With above settings, pb_model would recursively serialize and de-serialize between Django and ProtoBuf.
 
 .. code:: python
 
@@ -211,14 +281,14 @@ Django model would be:
        pass
 
    class Main(models.Model):
-       
+
        m2m = models.ManyToManyField(M2M)
 
 
 Django to Protobuf
 """"""""""""""""""
 
-If this is not the format you expected, overwite `_m2m_to_protobuf()` of Django model by yourself.
+If this is not the format you expected, overwrite ``_m2m_to_protobuf()`` of Django model by yourself.
 
 
 Protobuf to Django
@@ -226,7 +296,7 @@ Protobuf to Django
 
 Same as previous section, we assume m2m field is repeated value in protobuf.
 By default, **NO** operation is performed, which means
-you may query current relation if your coverted django model instance has a valid PK.
+you may query current relation if your converted django model instance has a valid primary key.
 
 If you want to modify your database while converting on-the-fly, overwrite
 logics such as:
@@ -246,14 +316,14 @@ logics such as:
 
         ...
 
-Also, you should write your coverting policy if m2m is not nested repeated message in `_repeated_to_m2m` method
+Also, you should write your converting policy if m2m is not nested repeated message in ``_repeated_to_m2m`` method
 
 Datetime Field
 ~~~~~~~~~~~~~~
 
 Datetime is a special singular value.
 
-We currently convert between `datetime.datetime` (Python) and `google.protobuf.timestamp_pb2.Timestamp` (ProboBuf),
+We currently convert between ``datetime.datetime`` (Python) and ``google.protobuf.timestamp_pb2.Timestamp`` (ProboBuf),
 for example:
 
 ProtoBuf message:
@@ -288,20 +358,45 @@ Django Model:
    }
 
 
+Custom Fields
+~~~~~~~~~~~~~
+
+You can write your own field serializers, to convert between ``django.contrib.postgres.fields.JSONField`` (Python)
+and `string` (Protobuf) for example:
+
+ProtoBuf message:
+
+.. code:: protobuf
+
+    package models;
+
+    message WithJSONBlob {
+        int32 id = 1;
+        string json_blob = 2;
+    }
+
+Django Model:
+
+.. code:: python
+
+    def json_serializer(pb_obj, pb_field, dj_value):
+        setattr(pb_obj, pb_field.name, json.dumps(value))
+
+    def json_deserializer(instance, dj_field_name, pb_field, pb_value):
+        setattr(instance, dj_field_name, json.loads(pb_value))
+
+    class WithJSONField(ProtoBufMixin, models.Model):
+        pb_model = models_pb2.WithJSONBlob
+
+        pb_2_dj_field_serializers = {
+            'JSONField': (json_serializer, json_deserializer),
+        }
+
+        json_field = models.JSONField()
+
+
 Timezone
 """"""""
 
-Note that if you use `USE_TZ` in Django settings, all datetime would be converted to UTC timezone while storing in protobuf message.
-And coverted to default timezone in django according to settings.
-
-CONTRIBUTION
--------------
-
-Please fork the repository and test with at least one CI software (ex: travis in this repository).
-And don't forget to add your name to CONTRIBUTORS file.
-Thanks !
-
-LICENSE
--------
-
-Please read LICENSE file
+Note that if you use ``USE_TZ`` in Django settings, all datetime would be converted to UTC timezone while storing in protobuf message.
+And converted to default timezone in django according to settings.
