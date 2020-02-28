@@ -3,24 +3,18 @@
 
 import logging
 import six
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.db import models
 from django.conf import settings
 
 from google.protobuf.descriptor import FieldDescriptor
+from google.protobuf.message import Message
 
 from . import fields
 
 
-logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.WARNING)
-if settings.DEBUG:
-    LOGGER.setLevel(logging.DEBUG)
-
-
-class DjangoPBModelError(Exception):
-    pass
 
 
 class Meta(type(models.Model)):
@@ -166,6 +160,9 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                                fields._datetimefield_from_pb),
         models.UUIDField: (fields._uuid_to_pb,
                            fields._uuid_from_pb),
+        models.FileField: (fields._filefield_to_pb,
+                           fields._defaultfield_from_pb)
+
     }  # dj field in key, serializer function pairs in value
     pb_auto_field_type_mapping = {
         FieldDescriptor.TYPE_DOUBLE: models.FloatField,
@@ -212,30 +209,52 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         super(ProtoBufMixin, self).save(*args, **kwargs)
 
     def to_pb(self):
-        """Convert django model to protobuf instance by pre-defined name
-
-        :returns: ProtoBuf instance
         """
-        _pb_obj = self.pb_model()
-        _dj_field_map = {f.name: f for f in self._meta.get_fields()}
-        for _f in _pb_obj.DESCRIPTOR.fields:
-            _dj_f_name = self.pb_2_dj_field_map.get(_f.name, _f.name)
-            if _dj_f_name not in _dj_field_map:
-                LOGGER.warning("No such django field: {}".format(_f.name))
-                continue
-            try:
-                _dj_f_value, _dj_f_type = getattr(self, _dj_f_name), _dj_field_map[_dj_f_name]
-                if not (_dj_f_type.null and _dj_f_value is None):
-                    if _dj_f_type.is_relation and not issubclass(type(_dj_f_type), fields.ProtoBufFieldMixin):
-                        self._relation_to_protobuf(_pb_obj, _f, _dj_f_type, _dj_f_value)
-                    else:
-                        self._value_to_protobuf(_pb_obj, _f, type(_dj_f_type), _dj_f_value)
-            except AttributeError as e:
-                LOGGER.error("Fail to serialize field: {} for {}. Error: {}".format(_dj_f_name, self._meta.model, e))
-                raise DjangoPBModelError("Can't serialize Model({})'s field: {}. Err: {}".format(_dj_f_name, self._meta.model, e))
+        Convert this django model instance to protobuf instance.
 
-        LOGGER.info("Coverted Protobuf object: {}".format(_pb_obj))
-        return _pb_obj
+        :returns: object of type 'pb_model'
+        """
+        pb_obj = self.pb_model()
+        field_map = {f.name: f for f in self._meta.get_fields()}
+
+        for pb_f in pb_obj.DESCRIPTOR.fields:
+            dj_name = self.pb_2_dj_field_map.get(pb_f.name, pb_f.name)
+
+            if dj_name not in field_map:
+                raise ValueError(
+                    "Field does not exist in django model: '{}'".format(pb_f.name)
+                )
+
+            try:
+                try:
+                    dj_value, dj_f = getattr(self, dj_name), field_map[dj_name]
+                except ObjectDoesNotExist:
+                    continue
+
+                if dj_value is None:
+                    if pb_f.message_type is not None:
+                        # support for wrapper types.
+                        #
+                        # Of course, they can't be "None", but they can be "unset"
+                        # (which is the default, so just skip them here.)
+                        continue
+
+                    raise ValueError(
+                        "Failed to serialize field '{}' - nullable fields are not supported by protobuf.".format(dj_name)
+                    )
+
+                if dj_f.is_relation and not issubclass(type(dj_f), fields.ProtoBufFieldMixin):
+                    self._relation_to_protobuf(pb_obj, pb_f, dj_f, dj_value)
+                else:
+                    self._value_to_protobuf(pb_obj, pb_f, type(dj_f), dj_value)
+            except AttributeError as e:
+                e.args = [
+                    "Failed to serialize field '{}' - {}".format(dj_name, ' '.join(e.args))
+                ]
+                raise
+
+        LOGGER.info("Converted to Protobuf object: {}".format(pb_to_dict(pb_obj)))
+        return pb_obj
 
     def _relation_to_protobuf(self, pb_obj, pb_field, dj_field_type, dj_field_value):
         """Handling relation to protobuf
@@ -315,23 +334,29 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         s_funcs = self._get_serializers(dj_field_type)
         s_funcs[0](pb_obj, pb_field, dj_field_value)
 
-    def from_pb(self, _pb_obj):
+    def from_pb(self, pb_obj):
         """Convert given protobuf obj to mixin Django model
 
         :returns: Django model instance
         """
-        _dj_field_map = {f.name: f for f in self._meta.get_fields()}
-        LOGGER.debug("ListFields() return fields which contains value only")
-        for _f, _v in _pb_obj.ListFields():
-            _dj_f_name = self.pb_2_dj_field_map.get(_f.name, _f.name)
-            _dj_f_type = _dj_field_map[_dj_f_name]
-            if _f.message_type is not None:
-                dj_field = _dj_field_map[_dj_f_name]
-                if dj_field.is_relation and not issubclass(type(dj_field), fields.ProtoBufFieldMixin):
-                    self._protobuf_to_relation(_dj_f_name, dj_field, _f, _v)
+        field_map = {f.name: f for f in self._meta.get_fields()}
+
+        for pb_f in pb_obj.DESCRIPTOR.fields:
+            pb_name = pb_f.name
+            dj_name = self.pb_2_dj_field_map.get(pb_name, pb_name)
+            pb_val = getattr(pb_obj, pb_name)
+            dj_f = field_map[dj_name]
+
+            if pb_f.message_type is not None:
+                if not pb_obj.HasField(pb_name):
                     continue
-            self._protobuf_to_value(_dj_f_name, type(_dj_f_type), _f, _v)
-        LOGGER.info("Coveretd Django model instance: {}".format(self))
+                if dj_f.is_relation and not issubclass(type(dj_f), fields.ProtoBufFieldMixin):
+                    self._protobuf_to_relation(dj_name, dj_f, pb_f, pb_val)
+                    continue
+
+            self._protobuf_to_value(dj_name, type(dj_f), pb_f, pb_val)
+
+        LOGGER.info("Converted to Django model instance: {}".format(self))
         return self
 
     def _protobuf_to_relation(self, dj_field_name, dj_field, pb_field,
@@ -399,3 +424,20 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         """
         s_funcs = self._get_serializers(dj_field_type)
         s_funcs[1](self, dj_field_name, pb_field, pb_value)
+
+
+def pb_to_dict(pb_obj):
+    if not isinstance(pb_obj, Message):
+        return pb_obj
+
+    result = {}
+    for f in pb_obj.DESCRIPTOR.fields:
+        name = f.name
+
+        value = getattr(pb_obj, f.name)
+        if isinstance(value, Message) and not pb_obj.HasField(name):
+            value = None
+
+        result[name] = pb_to_dict(value)
+
+    return result
