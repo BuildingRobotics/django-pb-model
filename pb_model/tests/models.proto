@@ -85,3 +85,8 @@ message Root {
     map<string, string> data                        = 1;
   }
 }
+
+message Comfy {
+    string id = 1;
+    string number = 2;
+}

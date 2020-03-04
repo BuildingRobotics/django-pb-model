@@ -7,7 +7,7 @@ import six
 from django.db import models
 from django.conf import settings
 
-from google.protobuf.descriptor import FieldDescriptor
+from google.protobuf.descriptor import FieldDescriptor as FD
 
 from . import fields
 
@@ -168,22 +168,22 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                            fields._uuid_from_pb),
     }  # dj field in key, serializer function pairs in value
     pb_auto_field_type_mapping = {
-        FieldDescriptor.TYPE_DOUBLE: models.FloatField,
-        FieldDescriptor.TYPE_FLOAT: models.FloatField,
-        FieldDescriptor.TYPE_INT64: models.BigIntegerField,
-        FieldDescriptor.TYPE_UINT64: models.BigIntegerField,
-        FieldDescriptor.TYPE_INT32: models.IntegerField,
-        FieldDescriptor.TYPE_FIXED64: models.DecimalField,
-        FieldDescriptor.TYPE_FIXED32: models.DecimalField,
-        FieldDescriptor.TYPE_BOOL: models.NullBooleanField,
-        FieldDescriptor.TYPE_STRING: models.TextField,
-        FieldDescriptor.TYPE_BYTES: models.BinaryField,
-        FieldDescriptor.TYPE_UINT32: models.PositiveIntegerField,
-        FieldDescriptor.TYPE_ENUM: models.IntegerField,
-        FieldDescriptor.TYPE_SFIXED32: models.DecimalField,
-        FieldDescriptor.TYPE_SFIXED64: models.DecimalField,
-        FieldDescriptor.TYPE_SINT32: models.IntegerField,
-        FieldDescriptor.TYPE_SINT64: models.BigIntegerField,
+        FD.TYPE_DOUBLE: models.FloatField,
+        FD.TYPE_FLOAT: models.FloatField,
+        FD.TYPE_INT64: models.BigIntegerField,
+        FD.TYPE_UINT64: models.BigIntegerField,
+        FD.TYPE_INT32: models.IntegerField,
+        FD.TYPE_FIXED64: models.DecimalField,
+        FD.TYPE_FIXED32: models.DecimalField,
+        FD.TYPE_BOOL: models.NullBooleanField,
+        FD.TYPE_STRING: models.TextField,
+        FD.TYPE_BYTES: models.BinaryField,
+        FD.TYPE_UINT32: models.PositiveIntegerField,
+        FD.TYPE_ENUM: models.IntegerField,
+        FD.TYPE_SFIXED32: models.DecimalField,
+        FD.TYPE_SFIXED64: models.DecimalField,
+        FD.TYPE_SINT32: models.IntegerField,
+        FD.TYPE_SINT64: models.BigIntegerField,
         fields.PB_FIELD_TYPE_TIMESTAMP: models.DateTimeField,
         fields.PB_FIELD_TYPE_REPEATED: fields.ArrayField,
         fields.PB_FIELD_TYPE_MAP: fields.MapField,
@@ -418,4 +418,4 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         :returns: None
         """
         s_funcs = self._get_serializers(dj_field_type, pb_field)
-        s_funcs[1](self, dj_field_name, pb_field, pb_value)
+        s_funcs[1](self, dj_field_name, pb_field, pb_value, dj_field_type=dj_field_type)

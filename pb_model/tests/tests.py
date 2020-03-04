@@ -119,7 +119,7 @@ class ProtoBufConvertingTest(TestCase):
             getattr(pb_obj, 'foreign_field').extend([dj_value.first, dj_value.second, dj_value.third])
 
 
-        def deserializer(instance, dj_field_name, pb_field, pb_value):
+        def deserializer(instance, dj_field_name, pb_field, pb_value, **_):
             setattr(instance, 'foreign_field',
                     NativeRelation(
                         first=pb_value[0],
@@ -195,3 +195,20 @@ class ProtoBufConvertingTest(TestCase):
         assert dj_object_from_db.uint32_field_renamed == pb_object.uint32_field
         result = dj_object_from_db.to_pb()
         assert pb_object == result
+
+
+class ComfyConvertingTest(TestCase):
+
+    def test_comfy_model(self):
+        comfy1 = models.Comfy.objects.create(number=10)
+        self.assertEqual(1, comfy1.id)
+        self.assertEqual(10, comfy1.number)
+
+        comfy_pb = comfy1.to_pb()
+        self.assertEqual("1", comfy_pb.id)
+        self.assertEqual("10", comfy_pb.number)
+
+        comfy2 = models.Comfy()
+        comfy2.from_pb(comfy_pb)
+        self.assertEqual(1, comfy2.id)
+        self.assertEqual(10, comfy2.number)

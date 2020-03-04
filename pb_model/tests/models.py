@@ -64,3 +64,9 @@ class Root(ProtoBufMixin, models.Model):
     pb_2_dj_field_map = {'uint32_field': 'uint32_field_renamed'}
 
     uuid_field = models.UUIDField(null=True)
+
+
+class Comfy(ProtoBufMixin, models.Model):
+    pb_model = models_pb2.Comfy
+
+    number = models.IntegerField(default=0)
