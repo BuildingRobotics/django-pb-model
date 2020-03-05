@@ -22,7 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='models',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x1bpb_model/tests/models.proto\x12\x06models\x1a\x1fgoogle/protobuf/timestamp.proto\"#\n\x08Relation\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0b\n\x03num\x18\x02 \x01(\x05\"&\n\x0bM2MRelation\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0b\n\x03num\x18\x02 \x01(\x05\"\xc8\x02\n\x04Main\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x14\n\x0cstring_field\x18\x02 \x01(\t\x12\x15\n\rinteger_field\x18\x03 \x01(\x05\x12\x13\n\x0b\x66loat_field\x18\x04 \x01(\x02\x12+\n\rchoices_field\x18\x05 \x01(\x0e\x32\x14.models.Main.Options\x12\"\n\x08\x66k_field\x18\x06 \x01(\x0b\x32\x10.models.Relation\x12&\n\tm2m_field\x18\x07 \x03(\x0b\x32\x13.models.M2MRelation\x12\x12\n\nbool_field\x18\x08 \x01(\x08\x12\x32\n\x0e\x64\x61tetime_field\x18\t \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"1\n\x07Options\x12\x08\n\x04OPT0\x10\x00\x12\x08\n\x04OPT1\x10\x01\x12\x08\n\x04OPT2\x10\x02\x12\x08\n\x04OPT3\x10\x03\"\xd8\x08\n\x04Root\x12\x14\n\x0cuint32_field\x18\x01 \x01(\r\x12\x13\n\x0bint32_field\x18\x02 \x01(\x05\x12\x14\n\x0cuint64_field\x18\x03 \x01(\x04\x12\x13\n\x0bint64_field\x18\x04 \x01(\x03\x12\x13\n\x0b\x66loat_field\x18\x05 \x01(\x02\x12\x14\n\x0c\x64ouble_field\x18\x06 \x01(\x01\x12\x14\n\x0cstring_field\x18\x07 \x01(\t\x12\x13\n\x0b\x62ytes_field\x18\x08 \x01(\x0c\x12\x12\n\nbool_field\x18\t \x01(\x08\x12 \n\nenum_field\x18\n \x01(\x0e\x32\x0c.models.Enum\x12\x33\n\x0ftimestamp_field\x18\x0b \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x12\n\nuuid_field\x18\x0c \x01(\t\x12\x1d\n\x15repeated_uint32_field\x18\r \x03(\r\x12\x1d\n\x15repeated_string_field\x18\x0e \x03(\t\x12\x1d\n\x15repeated_double_field\x18\x0f \x03(\x01\x12L\n\x1amap_string_to_string_field\x18\x10 \x03(\x0b\x32(.models.Root.MapStringToStringFieldEntry\x12,\n\rmessage_field\x18\x11 \x01(\x0b\x32\x15.models.Root.Embedded\x12\x35\n\x16repeated_message_field\x18\x12 \x03(\x0b\x32\x15.models.Root.Embedded\x12N\n\x1bmap_string_to_message_field\x18\x13 \x03(\x0b\x32).models.Root.MapStringToMessageFieldEntry\x12\x35\n\x11list_field_option\x18\x14 \x01(\x0b\x32\x18.models.Root.ListWrapperH\x00\x12\x33\n\x10map_field_option\x18\x15 \x01(\x0b\x32\x17.models.Root.MapWrapperH\x00\x12\x15\n\rforeign_field\x18\x1e \x03(\x05\x1a=\n\x1bMapStringToStringFieldEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1aU\n\x1cMapStringToMessageFieldEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12$\n\x05value\x18\x02 \x01(\x0b\x32\x15.models.Root.Embedded:\x02\x38\x01\x1a\x18\n\x08\x45mbedded\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x05\x1a\x1b\n\x0bListWrapper\x12\x0c\n\x04\x64\x61ta\x18\x01 \x03(\t\x1aj\n\nMapWrapper\x12/\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32!.models.Root.MapWrapper.DataEntry\x1a+\n\tDataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\t\n\x07options\"#\n\x05\x43omfy\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06number\x18\x02 \x01(\t*3\n\x04\x45num\x12\x0f\n\x0b\x45num_NOTSET\x10\x00\x12\x0c\n\x08\x45num_ONE\x10\x01\x12\x0c\n\x08\x45num_TWO\x10\x02\x62\x06proto3')
+  serialized_pb=_b('\n\x1bpb_model/tests/models.proto\x12\x06models\x1a\x1fgoogle/protobuf/timestamp.proto\"#\n\x08Relation\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0b\n\x03num\x18\x02 \x01(\x05\"&\n\x0bM2MRelation\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0b\n\x03num\x18\x02 \x01(\x05\"\xc8\x02\n\x04Main\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x14\n\x0cstring_field\x18\x02 \x01(\t\x12\x15\n\rinteger_field\x18\x03 \x01(\x05\x12\x13\n\x0b\x66loat_field\x18\x04 \x01(\x02\x12+\n\rchoices_field\x18\x05 \x01(\x0e\x32\x14.models.Main.Options\x12\"\n\x08\x66k_field\x18\x06 \x01(\x0b\x32\x10.models.Relation\x12&\n\tm2m_field\x18\x07 \x03(\x0b\x32\x13.models.M2MRelation\x12\x12\n\nbool_field\x18\x08 \x01(\x08\x12\x32\n\x0e\x64\x61tetime_field\x18\t \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"1\n\x07Options\x12\x08\n\x04OPT0\x10\x00\x12\x08\n\x04OPT1\x10\x01\x12\x08\n\x04OPT2\x10\x02\x12\x08\n\x04OPT3\x10\x03\"\xd8\x08\n\x04Root\x12\x14\n\x0cuint32_field\x18\x01 \x01(\r\x12\x13\n\x0bint32_field\x18\x02 \x01(\x05\x12\x14\n\x0cuint64_field\x18\x03 \x01(\x04\x12\x13\n\x0bint64_field\x18\x04 \x01(\x03\x12\x13\n\x0b\x66loat_field\x18\x05 \x01(\x02\x12\x14\n\x0c\x64ouble_field\x18\x06 \x01(\x01\x12\x14\n\x0cstring_field\x18\x07 \x01(\t\x12\x13\n\x0b\x62ytes_field\x18\x08 \x01(\x0c\x12\x12\n\nbool_field\x18\t \x01(\x08\x12 \n\nenum_field\x18\n \x01(\x0e\x32\x0c.models.Enum\x12\x33\n\x0ftimestamp_field\x18\x0b \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x12\n\nuuid_field\x18\x0c \x01(\t\x12\x1d\n\x15repeated_uint32_field\x18\r \x03(\r\x12\x1d\n\x15repeated_string_field\x18\x0e \x03(\t\x12\x1d\n\x15repeated_double_field\x18\x0f \x03(\x01\x12L\n\x1amap_string_to_string_field\x18\x10 \x03(\x0b\x32(.models.Root.MapStringToStringFieldEntry\x12,\n\rmessage_field\x18\x11 \x01(\x0b\x32\x15.models.Root.Embedded\x12\x35\n\x16repeated_message_field\x18\x12 \x03(\x0b\x32\x15.models.Root.Embedded\x12N\n\x1bmap_string_to_message_field\x18\x13 \x03(\x0b\x32).models.Root.MapStringToMessageFieldEntry\x12\x35\n\x11list_field_option\x18\x14 \x01(\x0b\x32\x18.models.Root.ListWrapperH\x00\x12\x33\n\x10map_field_option\x18\x15 \x01(\x0b\x32\x17.models.Root.MapWrapperH\x00\x12\x15\n\rforeign_field\x18\x1e \x03(\x05\x1a=\n\x1bMapStringToStringFieldEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1aU\n\x1cMapStringToMessageFieldEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12$\n\x05value\x18\x02 \x01(\x0b\x32\x15.models.Root.Embedded:\x02\x38\x01\x1a\x18\n\x08\x45mbedded\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x05\x1a\x1b\n\x0bListWrapper\x12\x0c\n\x04\x64\x61ta\x18\x01 \x03(\t\x1aj\n\nMapWrapper\x12/\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32!.models.Root.MapWrapper.DataEntry\x1a+\n\tDataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\t\n\x07options\"$\n\x04Item\x12\x10\n\x08\x63omfy_id\x18\x01 \x01(\t\x12\n\n\x02nr\x18\x02 \x01(\x05\"@\n\x05\x43omfy\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06number\x18\x02 \x01(\t\x12\x1b\n\x05items\x18\x03 \x03(\x0b\x32\x0c.models.Item*3\n\x04\x45num\x12\x0f\n\x0b\x45num_NOTSET\x10\x00\x12\x0c\n\x08\x45num_ONE\x10\x01\x12\x0c\n\x08\x45num_TWO\x10\x02\x62\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -47,8 +47,8 @@ _ENUM = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1632,
-  serialized_end=1683,
+  serialized_start=1699,
+  serialized_end=1750,
 )
 _sym_db.RegisterEnumDescriptor(_ENUM)
 
@@ -635,6 +635,44 @@ _ROOT = _descriptor.Descriptor(
 )
 
 
+_ITEM = _descriptor.Descriptor(
+  name='Item',
+  full_name='models.Item',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='comfy_id', full_name='models.Item.comfy_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='nr', full_name='models.Item.nr', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1595,
+  serialized_end=1631,
+)
+
+
 _COMFY = _descriptor.Descriptor(
   name='Comfy',
   full_name='models.Comfy',
@@ -656,6 +694,13 @@ _COMFY = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='items', full_name='models.Comfy.items', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -668,8 +713,8 @@ _COMFY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1595,
-  serialized_end=1630,
+  serialized_start=1633,
+  serialized_end=1697,
 )
 
 _MAIN.fields_by_name['choices_field'].enum_type = _MAIN_OPTIONS
@@ -699,10 +744,12 @@ _ROOT.fields_by_name['list_field_option'].containing_oneof = _ROOT.oneofs_by_nam
 _ROOT.oneofs_by_name['options'].fields.append(
   _ROOT.fields_by_name['map_field_option'])
 _ROOT.fields_by_name['map_field_option'].containing_oneof = _ROOT.oneofs_by_name['options']
+_COMFY.fields_by_name['items'].message_type = _ITEM
 DESCRIPTOR.message_types_by_name['Relation'] = _RELATION
 DESCRIPTOR.message_types_by_name['M2MRelation'] = _M2MRELATION
 DESCRIPTOR.message_types_by_name['Main'] = _MAIN
 DESCRIPTOR.message_types_by_name['Root'] = _ROOT
+DESCRIPTOR.message_types_by_name['Item'] = _ITEM
 DESCRIPTOR.message_types_by_name['Comfy'] = _COMFY
 DESCRIPTOR.enum_types_by_name['Enum'] = _ENUM
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -782,6 +829,13 @@ _sym_db.RegisterMessage(Root.Embedded)
 _sym_db.RegisterMessage(Root.ListWrapper)
 _sym_db.RegisterMessage(Root.MapWrapper)
 _sym_db.RegisterMessage(Root.MapWrapper.DataEntry)
+
+Item = _reflection.GeneratedProtocolMessageType('Item', (_message.Message,), {
+  'DESCRIPTOR' : _ITEM,
+  '__module__' : 'pb_model.tests.models_pb2'
+  # @@protoc_insertion_point(class_scope:models.Item)
+  })
+_sym_db.RegisterMessage(Item)
 
 Comfy = _reflection.GeneratedProtocolMessageType('Comfy', (_message.Message,), {
   'DESCRIPTOR' : _COMFY,

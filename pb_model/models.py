@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import functools
 import logging
 import six
 
@@ -159,6 +160,7 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         abstract = True
 
     pb_model = None
+    pb_type_cast = True
     pb_2_dj_fields = []  # list of pb field names that are mapped, special case pb_2_dj_fields = '__all__'
     pb_2_dj_field_map = {}  # pb field in keys, dj field in value
     pb_2_dj_field_serializers = {
@@ -196,10 +198,16 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
     schema migration or any model changes.
     """
 
-    default_serializers = (fields._defaultfield_to_pb, fields._defaultfield_from_pb)
-
     def __init__(self, *args, **kwargs):
         super(ProtoBufMixin, self).__init__(*args, **kwargs)
+
+        self.default_serializers = tuple(map(
+            lambda func: functools.partial(func, force_type_cast=self.pb_type_cast),
+            (
+                fields._defaultfield_to_pb,
+                fields._defaultfield_from_pb
+            )
+        ))
         for m2m_field in self._meta.many_to_many:
             if issubclass(type(m2m_field), fields.ProtoBufFieldMixin):
                 m2m_field.load(self)
@@ -256,7 +264,7 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
 
         """
         LOGGER.debug("Django Relation field, recursivly serializing")
-        if dj_field_type.many_to_many:
+        if any([dj_field_type.many_to_many, dj_field_type.one_to_many]):
             self._m2m_to_protobuf(pb_obj, pb_field, dj_field_value)
         else:
             getattr(pb_obj, pb_field.name).CopyFrom(dj_field_value.to_pb())
@@ -365,7 +373,7 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         :returns: None
         """
         LOGGER.debug("Django Relation Feild, deserializing Probobuf message")
-        if dj_field.many_to_many:
+        if any([dj_field.many_to_many, dj_field.one_to_many]):
             self._protobuf_to_m2m(dj_field_name, dj_field, pb_value)
             return
 

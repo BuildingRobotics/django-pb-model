@@ -23,30 +23,43 @@ PB_FIELD_TYPE_REPEATED_MESSAGE = FD.MAX_TYPE + 5
 PB_FIELD_TYPE_MESSAGE_MAP = FD.MAX_TYPE + 6
 
 FIELD_TYPE_CAST = {
+    FD.TYPE_DOUBLE: float,
+    FD.TYPE_FLOAT: float,
+    FD.TYPE_INT64: long,
+    FD.TYPE_UINT64: long,
+    FD.TYPE_INT32: int,
+    FD.TYPE_BOOL: bool,
     FD.TYPE_STRING: str,
+    FD.TYPE_BYTES: bytes,
+    FD.TYPE_UINT32: int,
+    FD.TYPE_SINT32: int,
+    FD.TYPE_SINT64: long,
 }
 
 
-def _defaultfield_to_pb(pb_obj, pb_field, dj_field_value):
+def _defaultfield_to_pb(pb_obj, pb_field, dj_field_value, force_type_cast):
     """ handling any fields conversion to protobuf
     """
     LOGGER.debug("Django Value field, assign proto msg field: {} = {}".format(pb_field.name, dj_field_value))
     if sys.version_info < (3,) and type(dj_field_value) is buffer:
         dj_field_value = bytes(dj_field_value)
     try:
-        type_cast = FIELD_TYPE_CAST.get(pb_field.type)
-        if type_cast:
-            dj_field_value = type_cast(dj_field_value)
+        if force_type_cast:
+            type_cast = FIELD_TYPE_CAST.get(pb_field.type)
+            if type_cast:
+                dj_field_value = type_cast(dj_field_value)
         setattr(pb_obj, pb_field.name, dj_field_value)
     except TypeError as e:
         e.args = ["Failed to serialize field '{}' - {}".format(pb_field.name, e)]
         raise
 
 
-def _defaultfield_from_pb(instance, dj_field_name, pb_field, pb_value, dj_field_type):
+def _defaultfield_from_pb(instance, dj_field_name, pb_field, pb_value, dj_field_type,
+                          force_type_cast):
     """ handling any fields setting from protobuf
     """
-    pb_value = dj_field_type().to_python(pb_value)
+    if force_type_cast and pb_field.type in FIELD_TYPE_CAST:
+        pb_value = dj_field_type().to_python(pb_value)
     LOGGER.debug("Django Value Field, set dj field: {} = {}".format(dj_field_name, pb_value))
     setattr(instance, dj_field_name, pb_value)
 

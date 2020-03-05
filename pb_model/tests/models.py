@@ -4,6 +4,7 @@
 from django.db import models
 from django.utils import timezone
 
+from pb_model import fields
 from pb_model.models import ProtoBufMixin
 
 from . import models_pb2
@@ -70,3 +71,10 @@ class Comfy(ProtoBufMixin, models.Model):
     pb_model = models_pb2.Comfy
 
     number = models.IntegerField(default=0)
+
+
+class Item(ProtoBufMixin, models.Model):
+    pb_model = models_pb2.Item
+
+    comfy = models.ForeignKey(Comfy, related_name="items")
+    nr = models.IntegerField()

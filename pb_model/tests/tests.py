@@ -201,14 +201,18 @@ class ComfyConvertingTest(TestCase):
 
     def test_comfy_model(self):
         comfy1 = models.Comfy.objects.create(number=10)
+        item1 = models.Item.objects.create(comfy=comfy1, nr=5)
         self.assertEqual(1, comfy1.id)
         self.assertEqual(10, comfy1.number)
+        self.assertEqual(5, item1.nr)
 
         comfy_pb = comfy1.to_pb()
         self.assertEqual("1", comfy_pb.id)
         self.assertEqual("10", comfy_pb.number)
+        self.assertEqual(5, comfy_pb.items[0].nr)
 
         comfy2 = models.Comfy()
         comfy2.from_pb(comfy_pb)
         self.assertEqual(1, comfy2.id)
         self.assertEqual(10, comfy2.number)
+        self.assertEqual(5, comfy2.items.get().nr)
