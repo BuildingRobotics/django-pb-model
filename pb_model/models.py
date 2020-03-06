@@ -161,6 +161,7 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
 
     pb_model = None
     pb_type_cast = True
+    pb_expand_relation = True
     pb_2_dj_fields = []  # list of pb field names that are mapped, special case pb_2_dj_fields = '__all__'
     pb_2_dj_field_map = {}  # pb field in keys, dj field in value
     pb_2_dj_field_serializers = {
@@ -198,15 +199,14 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
     schema migration or any model changes.
     """
 
+    default_serializers = (fields._defaultfield_to_pb, fields._defaultfield_from_pb)
+
     def __init__(self, *args, **kwargs):
         super(ProtoBufMixin, self).__init__(*args, **kwargs)
 
         self.default_serializers = tuple(map(
             lambda func: functools.partial(func, force_type_cast=self.pb_type_cast),
-            (
-                fields._defaultfield_to_pb,
-                fields._defaultfield_from_pb
-            )
+            self.default_serializers
         ))
         for m2m_field in self._meta.many_to_many:
             if issubclass(type(m2m_field), fields.ProtoBufFieldMixin):
@@ -243,7 +243,8 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                         self._value_to_protobuf(_pb_obj, _f, type(_dj_f_type), _dj_f_value)
                     else:
                         if _dj_f_type.is_relation and not issubclass(type(_dj_f_type), fields.ProtoBufFieldMixin):
-                            self._relation_to_protobuf(_pb_obj, _f, _dj_f_type, _dj_f_value)
+                            if self.pb_expand_relation:
+                                self._relation_to_protobuf(_pb_obj, _f, _dj_f_type, _dj_f_value)
                         else:
                             self._value_to_protobuf(_pb_obj, _f, type(_dj_f_type), _dj_f_value)
             except AttributeError as e:
@@ -263,7 +264,7 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         :returns: None
 
         """
-        LOGGER.debug("Django Relation field, recursivly serializing")
+        LOGGER.debug("Django Relation field, recursively serializing")
         if any([dj_field_type.many_to_many, dj_field_type.one_to_many]):
             self._m2m_to_protobuf(pb_obj, pb_field, dj_field_value)
         else:
@@ -356,7 +357,8 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
             if _f.message_type is not None:
                 dj_field = _dj_field_map[_dj_f_name]
                 if dj_field.is_relation and not issubclass(type(dj_field), fields.ProtoBufFieldMixin):
-                    self._protobuf_to_relation(_dj_f_name, dj_field, _f, _v)
+                    if self.pb_expand_relation:
+                        self._protobuf_to_relation(_dj_f_name, dj_field, _f, _v)
                     continue
             self._protobuf_to_value(_dj_f_name, type(_dj_f_type), _f, _v)
         LOGGER.info("Coveretd Django model instance: {}".format(self))

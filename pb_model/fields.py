@@ -121,6 +121,10 @@ def _filefield_to_pb(pb_obj, pb_field, dj_value):
     _defaultfield_to_pb(pb_obj, pb_field, value)
 
 
+def array_to_pb(pb_obj, pb_field, dj_field_value, **_):
+    getattr(pb_obj, pb_field.name).extend(dj_field_value)
+
+
 class ProtoBufFieldMixin(object):
     @staticmethod
     def to_pb(pb_obj, pb_field, dj_field_value):

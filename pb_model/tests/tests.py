@@ -1,6 +1,7 @@
 import datetime
 import uuid
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
 from django.db import models as dj_models
 
@@ -200,19 +201,52 @@ class ProtoBufConvertingTest(TestCase):
 class ComfyConvertingTest(TestCase):
 
     def test_comfy_model(self):
-        comfy1 = models.Comfy.objects.create(number=10)
+        sub1 = models.Sub.objects.create(name="test_sub")
+        comfy1 = models.Comfy.objects.create(number=10, sub=sub1)
         item1 = models.Item.objects.create(comfy=comfy1, nr=5)
         self.assertEqual(1, comfy1.id)
         self.assertEqual(10, comfy1.number)
         self.assertEqual(5, item1.nr)
 
-        comfy_pb = comfy1.to_pb()
-        self.assertEqual("1", comfy_pb.id)
-        self.assertEqual("10", comfy_pb.number)
-        self.assertEqual(5, comfy_pb.items[0].nr)
+        comfy1_pb = comfy1.to_pb()
+        self.assertEqual("1", comfy1_pb.id)
+        self.assertEqual("10", comfy1_pb.number)
+        if models.Comfy.pb_expand_relation:
+            self.assertEqual(5, comfy1_pb.items[0].nr)
+            self.assertEqual("test_sub", comfy1_pb.sub.name)
 
         comfy2 = models.Comfy()
-        comfy2.from_pb(comfy_pb)
+        comfy2.from_pb(comfy1_pb)
         self.assertEqual(1, comfy2.id)
         self.assertEqual(10, comfy2.number)
-        self.assertEqual(5, comfy2.items.get().nr)
+        if models.Comfy.pb_expand_relation:
+            self.assertEqual(5, comfy2.items.get().nr)
+            self.assertEqual("test_sub", comfy2.sub.name)
+
+    def test_no_relation_expansion(self):
+        sub1 = models.Sub.objects.create(name="test_sub")
+        comfy_no_expand1 = models.ComfyNoExpand.objects.create(number=11, sub=sub1)
+        item_no_expand1 = models.ItemNoExpand.objects.create(
+            comfy=comfy_no_expand1, nr=6
+        )
+
+        comfy_no_expand1_pb = comfy_no_expand1.to_pb()
+        self.assertFalse(comfy_no_expand1_pb.items_no_expand)
+
+        item_no_expand1.delete()
+        comfy_no_expand1.delete()
+        del item_no_expand1, comfy_no_expand1
+
+        comfy_no_expand2 = models.ComfyNoExpand()
+        comfy_no_expand2.from_pb(comfy_no_expand1_pb)
+        with self.assertRaises(ObjectDoesNotExist):
+            # FIXME(cmiN): Check `_protobuf_to_m2m` hook if you want on-the-fly
+            #  full population of the model.
+            comfy_no_expand2.items_no_expand.get()
+
+    def test_with_enum(self):
+        comfy1 = models.ComfyWithEnum.objects.create(number=12)
+        comfy1.work_days = [1, 2]
+
+        comfy1_pb = comfy1.to_pb()
+        self.assertEqual(comfy1.work_days, comfy1_pb.work_days)

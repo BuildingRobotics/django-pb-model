@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
 
@@ -67,14 +69,51 @@ class Root(ProtoBufMixin, models.Model):
     uuid_field = models.UUIDField(null=True)
 
 
+class Sub(ProtoBufMixin, models.Model):
+    pb_model = models_pb2.Sub
+
+    name = models.CharField(max_length=32, default="")
+
+
 class Comfy(ProtoBufMixin, models.Model):
     pb_model = models_pb2.Comfy
 
     number = models.IntegerField(default=0)
+    sub = models.ForeignKey(Sub, null=True)
 
 
-class Item(ProtoBufMixin, models.Model):
+class ComfyNoExpand(Comfy):
+    pb_model = models_pb2.ComfyNoExpand
+    pb_expand_relation = False
+
+
+class ComfyWithEnum(Comfy):
+    WEEKDAYS = (
+        (1, "Monday"),
+        (2, "Tuesday"),
+    )
+
+    pb_model = models_pb2.ComfyWithEnum
+    pb_2_dj_field_serializers = {
+        ArrayField: (fields.array_to_pb, None),
+    }
+
+    work_days = ArrayField(
+        blank=True,
+        base_field=models.PositiveSmallIntegerField(choices=WEEKDAYS),
+        null=True,
+    )
+
+
+class BaseItem(ProtoBufMixin, models.Model):
     pb_model = models_pb2.Item
 
-    comfy = models.ForeignKey(Comfy, related_name="items")
     nr = models.IntegerField()
+
+
+class Item(BaseItem):
+    comfy = models.ForeignKey(Comfy, related_name="items")
+
+
+class ItemNoExpand(BaseItem):
+    comfy = models.ForeignKey(ComfyNoExpand, related_name="items_no_expand")

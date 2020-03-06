@@ -88,12 +88,43 @@ message Root {
 
 
 message Item {
-    string comfy_id = 1;
-    int32 nr = 2;
+    string id = 1;
+    int32 nr = 3;
+}
+
+message Sub {
+    string id = 1;
+    string name = 2;
+}
+
+enum Weekday {
+  option allow_alias = true;
+  DEFAULT = 0; // Default picks the normal mon-fri weekday and sat-sun weekend
+  MONDAY = 1;
+  MON = 1;
+  TUESDAY = 2;
+  TUE = 2;
 }
 
 message Comfy {
     string id = 1;
     string number = 2;
     repeated Item items = 3;
+    Sub sub = 4;
+}
+
+message ComfyNoExpand {
+    string id = 1;
+    string number = 2;
+    repeated Item items_no_expand = 3;
+    Sub sub = 4;
+}
+
+
+message ComfyWithEnum {
+    string id = 1;
+    string number = 2;
+    repeated Item items = 3;
+    Sub sub = 4;
+    repeated Weekday work_days = 5;
 }
