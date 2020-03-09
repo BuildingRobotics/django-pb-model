@@ -10,35 +10,101 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 
-from google.protobuf.descriptor import FieldDescriptor
+from google.protobuf.descriptor import FieldDescriptor as FD
 
 
 LOGGER = logging.getLogger(__name__)
 
-PB_FIELD_TYPE_TIMESTAMP = FieldDescriptor.MAX_TYPE + 1
-PB_FIELD_TYPE_REPEATED = FieldDescriptor.MAX_TYPE + 2
-PB_FIELD_TYPE_MAP = FieldDescriptor.MAX_TYPE + 3
-PB_FIELD_TYPE_MESSAGE = FieldDescriptor.MAX_TYPE + 4
-PB_FIELD_TYPE_REPEATED_MESSAGE = FieldDescriptor.MAX_TYPE + 5
-PB_FIELD_TYPE_MESSAGE_MAP = FieldDescriptor.MAX_TYPE + 6
+PB_FIELD_TYPE_TIMESTAMP = FD.MAX_TYPE + 1
+PB_FIELD_TYPE_REPEATED = FD.MAX_TYPE + 2
+PB_FIELD_TYPE_MAP = FD.MAX_TYPE + 3
+PB_FIELD_TYPE_MESSAGE = FD.MAX_TYPE + 4
+PB_FIELD_TYPE_REPEATED_MESSAGE = FD.MAX_TYPE + 5
+PB_FIELD_TYPE_MESSAGE_MAP = FD.MAX_TYPE + 6
+
+FIELD_TYPE_CAST = {
+    FD.TYPE_DOUBLE: float,
+    FD.TYPE_FLOAT: float,
+    FD.TYPE_INT64: long,
+    FD.TYPE_UINT64: long,
+    FD.TYPE_INT32: int,
+    FD.TYPE_BOOL: bool,
+    FD.TYPE_STRING: str,
+    FD.TYPE_BYTES: bytes,
+    FD.TYPE_UINT32: int,
+    FD.TYPE_SINT32: int,
+    FD.TYPE_SINT64: long,
+}
+GFIELD_TYPE_CAST = {
+    "DoubleValue": float,
+    "FloatValue": float,
+    "Int64Value": long,
+    "UInt64Value": long,
+    "Int32Value": int,
+    "UInt32Value": int,
+    "BoolValue": bool,
+    "StringValue": str,
+    "BytesValue": bytes,
+}
 
 
-def _defaultfield_to_pb(pb_obj, pb_field, dj_field_value):
+def normalize_dj_value(pb_field, dj_field_value, force_type_cast):
+    if force_type_cast and dj_field_value is not None:
+        mtype = pb_field.message_type
+        if mtype:
+            type_cast = GFIELD_TYPE_CAST.get(mtype.name)
+        else:
+            type_cast = FIELD_TYPE_CAST.get(pb_field.type)
+        if type_cast:
+            dj_field_value = type_cast(dj_field_value)
+    return dj_field_value
+
+
+def set_pb_value(pb_obj, pb_field, dj_field_value):
+    mtype = pb_field.message_type
+    if mtype and mtype.full_name.startswith("google.protobuf"):
+        if dj_field_value is not None:
+            getattr(pb_obj, pb_field.name).value = dj_field_value
+    else:
+        setattr(pb_obj, pb_field.name, dj_field_value)
+
+
+def _defaultfield_to_pb(pb_obj, pb_field, dj_field_value, force_type_cast):
     """ handling any fields conversion to protobuf
     """
     LOGGER.debug("Django Value field, assign proto msg field: {} = {}".format(pb_field.name, dj_field_value))
     if sys.version_info < (3,) and type(dj_field_value) is buffer:
         dj_field_value = bytes(dj_field_value)
     try:
-        setattr(pb_obj, pb_field.name, dj_field_value)
+        dj_field_value = normalize_dj_value(pb_field, dj_field_value, force_type_cast)
+        set_pb_value(pb_obj, pb_field, dj_field_value)
     except TypeError as e:
         e.args = ["Failed to serialize field '{}' - {}".format(pb_field.name, e)]
         raise
 
 
-def _defaultfield_from_pb(instance, dj_field_name, pb_field, pb_value):
+def normalize_pb_value(pb_field, pb_value, dj_field_type, force_type_cast):
+    mtype = pb_field.message_type
+
+    if force_type_cast:
+        to_py = dj_field_type().to_python
+        if mtype:
+            if mtype.name in GFIELD_TYPE_CAST:
+                return to_py(pb_value.value)
+        else:
+            if pb_field.type in FIELD_TYPE_CAST:
+                return to_py(pb_value)
+
+    if mtype and mtype.full_name.startswith("google.protobuf"):
+        return pb_value.value
+    return pb_value
+
+
+def _defaultfield_from_pb(instance, dj_field_name, pb_field, pb_value, dj_field_type,
+                          force_type_cast):
     """ handling any fields setting from protobuf
     """
+    pb_value = normalize_pb_value(pb_field, pb_value, dj_field_type, force_type_cast)
     LOGGER.debug("Django Value Field, set dj field: {} = {}".format(dj_field_name, pb_value))
     setattr(instance, dj_field_name, pb_value)
 
@@ -57,7 +123,7 @@ def _datetimefield_to_pb(pb_obj, pb_field, dj_field_value):
         getattr(pb_obj, pb_field.name).FromDatetime(dj_field_value)
 
 
-def _datetimefield_from_pb(instance, dj_field_name, pb_field, pb_value):
+def _datetimefield_from_pb(instance, dj_field_name, pb_field, pb_value, **_):
     """handling datetime field (Timestamp) object to dj field
 
     :param dj_field_name: Currently target django field's name
@@ -82,7 +148,7 @@ def _uuid_to_pb(pb_obj, pb_field, dj_field_value):
     setattr(pb_obj, pb_field.name, str(dj_field_value))
 
 
-def _uuid_from_pb(instance, dj_field_name, pb_field, pb_value):
+def _uuid_from_pb(instance, dj_field_name, pb_field, pb_value, **_):
     """handling string object to dj UUIDField
 
     :param dj_field_name: Currently target django field's name
@@ -100,13 +166,17 @@ def _filefield_to_pb(pb_obj, pb_field, dj_value):
     _defaultfield_to_pb(pb_obj, pb_field, value)
 
 
+def array_to_pb(pb_obj, pb_field, dj_field_value, **_):
+    getattr(pb_obj, pb_field.name).extend(dj_field_value)
+
+
 class ProtoBufFieldMixin(object):
     @staticmethod
     def to_pb(pb_obj, pb_field, dj_field_value):
         raise NotImplementedError()
 
     @staticmethod
-    def from_pb(instance, dj_field_name, pb_field, pb_value):
+    def from_pb(instance, dj_field_name, pb_field, pb_value, **_):
         raise NotImplementedError()
 
 
@@ -136,7 +206,7 @@ class ArrayField(JSONField, ProtoBufFieldMixin):
         getattr(pb_obj, pb_field.name).extend(dj_field_value)
 
     @staticmethod
-    def from_pb(instance, dj_field_name, pb_field, pb_value):
+    def from_pb(instance, dj_field_name, pb_field, pb_value, **_):
         setattr(instance, dj_field_name, list(pb_value))
 
 
@@ -146,7 +216,7 @@ class MapField(JSONField, ProtoBufFieldMixin):
         getattr(pb_obj, pb_field.name).update(dj_field_value)
 
     @staticmethod
-    def from_pb(instance, dj_field_name, pb_field, pb_value):
+    def from_pb(instance, dj_field_name, pb_field, pb_value, **_):
         setattr(instance, dj_field_name, dict(pb_value))
 
 
@@ -197,10 +267,17 @@ class RepeatedMessageField(models.ManyToManyField, ProtoBufFieldMixin):
         getattr(pb_obj, pb_field.name).extend([m.to_pb() for m in dj_field_value])
 
     @staticmethod
-    def from_pb(instance, dj_field_name, pb_field, pb_value):
+    def from_pb(instance, dj_field_name, pb_field, pb_value, **_):
         related_model = instance._meta.get_field(dj_field_name).related_model
         setattr(instance, dj_field_name, [related_model().from_pb(pb_message) for pb_message in pb_value])
 
+
+class RepeatedForeignField(JSONField):
+    """
+    This is an naive proxy field for JSONField to support types cannot
+    easily extend with protobuf support.
+    """
+    pass
 
 class MessageMapField(models.ManyToManyField, ProtoBufFieldMixin):
     class Descriptor(models.fields.related_descriptors.ManyToManyDescriptor):
@@ -250,6 +327,6 @@ class MessageMapField(models.ManyToManyField, ProtoBufFieldMixin):
             getattr(pb_obj, pb_field.name)[key].CopyFrom(dj_field_value[key].to_pb())
 
     @staticmethod
-    def from_pb(instance, dj_field_name, pb_field, pb_value):
+    def from_pb(instance, dj_field_name, pb_field, pb_value, **_):
         related_model = instance._meta.get_field(dj_field_name).related_model
         setattr(instance, dj_field_name, {key: related_model().from_pb(pb_message) for key, pb_message in pb_value.items()})

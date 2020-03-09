@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
 
+from pb_model import fields
 from pb_model.models import ProtoBufMixin
 
 from . import models_pb2
@@ -64,3 +67,78 @@ class Root(ProtoBufMixin, models.Model):
     pb_2_dj_field_map = {'uint32_field': 'uint32_field_renamed'}
 
     uuid_field = models.UUIDField(null=True)
+
+
+class Sub(ProtoBufMixin, models.Model):
+    pb_model = models_pb2.Sub
+
+    name = models.CharField(max_length=32, default="")
+
+
+class Comfy(ProtoBufMixin, models.Model):
+    pb_model = models_pb2.Comfy
+
+    number = models.IntegerField(default=0)
+    sub = models.ForeignKey(Sub, null=True)
+
+
+class ComfyNoExpand(Comfy):
+    pb_model = models_pb2.ComfyNoExpand
+    pb_expand_relation = False
+
+
+class ComfyWithEnum(Comfy):
+    WEEKDAYS = (
+        (1, "Monday"),
+        (2, "Tuesday"),
+    )
+
+    pb_model = models_pb2.ComfyWithEnum
+    pb_2_dj_field_serializers = {
+        ArrayField: (fields.array_to_pb, None),
+    }
+
+    work_days = ArrayField(
+        blank=True,
+        base_field=models.PositiveSmallIntegerField(choices=WEEKDAYS),
+        null=True,
+    )
+
+
+class ComfyWithGTypes(Comfy):
+    pb_model = models_pb2.ComfyWithGTypes
+
+    bool_val = models.BooleanField()
+    str_val = models.CharField(max_length=32, null=True, default="")
+    float_val = models.FloatField(default=None)
+
+
+class BaseItem(ProtoBufMixin, models.Model):
+    pb_model = models_pb2.Item
+
+    nr = models.IntegerField()
+
+
+class Item(BaseItem):
+    comfy = models.ForeignKey(Comfy, related_name="items")
+
+
+class ItemNoExpand(BaseItem):
+    comfy = models.ForeignKey(ComfyNoExpand, related_name="items_no_expand")
+
+
+class SubBadFields(ProtoBufMixin, models.Model):
+    pb_model = models_pb2.Sub
+    pb_type_cast = False
+
+    name = models.BooleanField(default=True)
+
+
+class ComfyBadFields(ProtoBufMixin, models.Model):
+    pb_model = models_pb2.ComfyWithGTypes
+
+    number = models.IntegerField(default=0)
+    sub = models.ForeignKey(SubBadFields, null=True)
+    bool_val = models.CharField(max_length=32)
+    str_val = models.IntegerField(null=True, default=0)
+    float_val = models.CharField(max_length=32, default=None)

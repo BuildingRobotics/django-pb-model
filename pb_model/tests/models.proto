@@ -2,6 +2,8 @@ syntax = "proto3";
 package models;
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
 
 // Relation model for testing
 message Relation {
@@ -72,6 +74,9 @@ message Root {
     MapWrapper map_field_option                     = 21;
   }
 
+  repeated int32 foreign_field                      = 30;
+
+
   message Embedded {
     int32 data                                      = 1;
   }
@@ -81,4 +86,58 @@ message Root {
   message MapWrapper {
     map<string, string> data                        = 1;
   }
+}
+
+
+message Item {
+    string id = 1;
+    int32 nr = 3;
+}
+
+message Sub {
+    string id = 1;
+    string name = 2;
+}
+
+enum Weekday {
+  option allow_alias = true;
+  DEFAULT = 0; // Default picks the normal mon-fri weekday and sat-sun weekend
+  MONDAY = 1;
+  MON = 1;
+  TUESDAY = 2;
+  TUE = 2;
+}
+
+message Comfy {
+    string id = 1;
+    string number = 2;
+    repeated Item items = 3;
+    Sub sub = 4;
+}
+
+message ComfyNoExpand {
+    string id = 1;
+    string number = 2;
+    repeated Item items_no_expand = 3;
+    Sub sub = 4;
+}
+
+
+message ComfyWithEnum {
+    string id = 1;
+    string number = 2;
+    repeated Item items = 3;
+    Sub sub = 4;
+    repeated Weekday work_days = 5;
+}
+
+
+message ComfyWithGTypes {
+    string id = 1;
+    string number = 2;
+    repeated Item items = 3;
+    Sub sub = 4;
+    google.protobuf.BoolValue bool_val = 5;
+    google.protobuf.StringValue str_val = 6;
+    google.protobuf.FloatValue float_val = 7;
 }

@@ -1,6 +1,7 @@
 import datetime
 import uuid
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
 from django.db import models as dj_models
 
@@ -107,6 +108,50 @@ class ProtoBufConvertingTest(TestCase):
         assert type(Child._meta.get_field('uint32_field_renamed')) is dj_models.IntegerField
         assert type(Child._meta.get_field('uint64_field_renamed')) is dj_models.IntegerField
 
+    def test_custom_serializer(self):
+        """
+        Default serialization strategies can be overriden
+        """
+
+        def serializer(pb_obj, pb_field, dj_value):
+            """
+            Serialize NativeRelation as a repeated int32
+            """
+            getattr(pb_obj, 'foreign_field').extend([dj_value.first, dj_value.second, dj_value.third])
+
+
+        def deserializer(instance, dj_field_name, pb_field, pb_value, **_):
+            setattr(instance, 'foreign_field',
+                    NativeRelation(
+                        first=pb_value[0],
+                        second=pb_value[1],
+                        third=pb_value[2]
+                    ))
+
+        # This is a relation type that's not ProtoBuf enabled
+        class NativeRelation(dj_models.Model):
+            first = dj_models.IntegerField()
+            second = dj_models.IntegerField()
+            third = dj_models.IntegerField()
+
+
+        class Model(ProtoBufMixin, dj_models.Model):
+            pb_model = models_pb2.Root
+            pb_2_dj_fields = ['foreign_field']
+            pb_2_dj_field_serializers = {
+                'foreign_field': (serializer, deserializer)
+            }
+            foreign_field = dj_models.ForeignKey(NativeRelation, on_delete=dj_models.DO_NOTHING)
+
+        _in = Model(foreign_field=NativeRelation(first=123, second=456, third=789))
+
+        out = Model().from_pb(_in.to_pb())
+
+        assert out.foreign_field.first == 123
+        assert out.foreign_field.second == 456
+        assert out.foreign_field.third == 789
+
+
     def test_auto_fields(self):
         timestamp = Timestamp()
         timestamp.FromDatetime(datetime.datetime.now())
@@ -151,3 +196,104 @@ class ProtoBufConvertingTest(TestCase):
         assert dj_object_from_db.uint32_field_renamed == pb_object.uint32_field
         result = dj_object_from_db.to_pb()
         assert pb_object == result
+
+
+class ComfyConvertingTest(TestCase):
+
+    def test_comfy_model(self):
+        sub1 = models.Sub.objects.create(name="test_sub")
+        comfy1 = models.Comfy.objects.create(number=10, sub=sub1)
+        item1 = models.Item.objects.create(comfy=comfy1, nr=5)
+        self.assertEqual(1, comfy1.id)
+        self.assertEqual(10, comfy1.number)
+        self.assertEqual(5, item1.nr)
+
+        comfy1_pb = comfy1.to_pb()
+        self.assertEqual("1", comfy1_pb.id)
+        self.assertEqual("10", comfy1_pb.number)
+        if models.Comfy.pb_expand_relation:
+            self.assertEqual(5, comfy1_pb.items[0].nr)
+            self.assertEqual("test_sub", comfy1_pb.sub.name)
+
+        comfy2 = models.Comfy()
+        comfy2.from_pb(comfy1_pb)
+        self.assertEqual(1, comfy2.id)
+        self.assertEqual(10, comfy2.number)
+        if models.Comfy.pb_expand_relation:
+            self.assertEqual(5, comfy2.items.get().nr)
+            self.assertEqual("test_sub", comfy2.sub.name)
+
+    def test_no_relation_expansion(self):
+        sub1 = models.Sub.objects.create(name="test_sub")
+        comfy_no_expand1 = models.ComfyNoExpand.objects.create(number=11, sub=sub1)
+        item_no_expand1 = models.ItemNoExpand.objects.create(
+            comfy=comfy_no_expand1, nr=6
+        )
+
+        comfy_no_expand1_pb = comfy_no_expand1.to_pb()
+        self.assertFalse(comfy_no_expand1_pb.items_no_expand)
+
+        item_no_expand1.delete()
+        comfy_no_expand1.delete()
+        del item_no_expand1, comfy_no_expand1
+
+        comfy_no_expand2 = models.ComfyNoExpand()
+        comfy_no_expand2.from_pb(comfy_no_expand1_pb)
+        with self.assertRaises(ObjectDoesNotExist):
+            # FIXME(cmiN): Check `_protobuf_to_m2m` hook if you want on-the-fly
+            #  full population of the model.
+            comfy_no_expand2.items_no_expand.get()
+
+    def test_with_enum(self):
+        comfy1 = models.ComfyWithEnum.objects.create(number=12)
+        comfy1.work_days = [1, 2]
+
+        comfy1_pb = comfy1.to_pb()
+        self.assertEqual(comfy1.work_days, comfy1_pb.work_days)
+
+    def test_with_gtypes(self):
+        sub1 = models.Sub.objects.create(name="test_sub")
+        comfy1 = models.ComfyWithGTypes.objects.create(
+            sub=sub1, bool_val=True, float_val=3.14
+        )
+        comfy1.str_val = None  # unset
+
+        comfy1_pb = comfy1.to_pb()
+        self.assertEqual(comfy1.bool_val, comfy1_pb.bool_val.value)
+        self.assertEqual(
+            round(comfy1.float_val, 2), round(comfy1_pb.float_val.value, 2)
+        )
+        # NOTE(cmiN): Unset values are seen as literal defaults.
+        self.assertEqual("", comfy1_pb.str_val.value)
+
+        comfy2 = models.ComfyWithGTypes()
+        comfy2.from_pb(comfy1_pb)
+        self.assertEqual(comfy1.bool_val, comfy2.bool_val)
+        self.assertEqual(round(comfy1.float_val, 2), round(comfy2.float_val, 2))
+        self.assertEqual("", comfy2.str_val)
+
+    def test_with_wrong_types(self):
+        sub1 = models.SubBadFields.objects.create(name=True)
+        exc_tpl = "type {}, but expected one of: bytes, unicode"
+        exp_sep = r"[\s\S]+?"
+        sub_exp = r"multiple exceptions found" + exp_sep + exp_sep.join(
+            map(exc_tpl.format, ("int", "bool"))
+        )
+        with self.assertRaisesRegexp(Exception, sub_exp):
+            sub1.to_pb()
+
+        comfy1 = models.ComfyBadFields.objects.create(
+            sub=sub1, bool_val="not-a-bool-but-works", float_val="not-a-float"
+        )
+        with self.assertRaisesRegexp(Exception, sub_exp):
+            comfy1.to_pb()
+
+        sub1.id, sub1.name = map(str, (sub1.id, sub1.name))  # get past above error
+        with self.assertRaisesRegexp(
+                Exception,
+                exp_sep.join([
+                    r"multiple exceptions found",
+                    r"could not convert string to float: not-a-float"
+                ])
+        ):
+            comfy1.to_pb()

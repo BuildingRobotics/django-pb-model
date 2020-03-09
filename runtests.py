@@ -6,9 +6,14 @@ Testcase runner:
 copied from http://stackoverflow.com/a/3851333
 """
 
-import os, sys
-from django.conf import settings
+import os
+import sys
+
+import fire
 from django.apps import apps
+from django.conf import settings
+from django.test.utils import get_runner
+
 
 BASE_DIR = os.path.dirname(__file__)
 settings.configure(
@@ -29,9 +34,15 @@ settings.configure(
 
 apps.populate(settings.INSTALLED_APPS)
 
-from django.test.utils import get_runner
 
-tr = get_runner(settings)()
-failures = tr.run_tests(['pb_model', ])
-if failures:
-    sys.exit(bool(failures))
+def run(path=''):
+    tr = get_runner(settings)()
+    abs_path = 'pb_model.tests.tests'
+    if path:
+        abs_path += '.{}'.format(path)
+    failures = tr.run_tests([abs_path,])
+    if failures:
+        sys.exit(bool(failures))
+
+
+fire.Fire(run)

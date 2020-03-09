@@ -19,7 +19,15 @@ Currently support basic value fields and naive relation conversion, including:
 * Foreign Key and Many-to-Many relation
 * `Custom fields`_, ex: JSON
 
-You could examine testcases_ for more details
+You could examine testcases_ for more details. Use runtests.sh for running all or
+individual tests. Examples:
+
+.. code:: shell
+
+	./runtests.sh
+	./runtests.sh ComfyConvertingTest
+	./runtests.sh ComfyConvertingTest.test_with_wrong_types
+
 
 .. _testcases: https://github.com/myyang/django-pb-model/tree/master/pb_model/tests
 .. _Custom fields: https://github.com/myyang/django-pb-model#custom-fields
@@ -379,10 +387,10 @@ Django Model:
 
 .. code:: python
 
-    def json_serializer(pb_obj, pb_field, dj_value):
-        setattr(pb_obj, pb_field.name, json.dumps(value))
+    def json_serializer(pb_obj, pb_field, dj_value, **_):
+        setattr(pb_obj, pb_field.name, json.dumps(dj_value))
 
-    def json_deserializer(instance, dj_field_name, pb_field, pb_value):
+    def json_deserializer(instance, dj_field_name, pb_field, pb_value, **_):
         setattr(instance, dj_field_name, json.loads(pb_value))
 
     class WithJSONField(ProtoBufMixin, models.Model):
