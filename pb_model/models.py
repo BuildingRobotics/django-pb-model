@@ -221,6 +221,44 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         kwargs['force_insert'] = False
         super(ProtoBufMixin, self).save(*args, **kwargs)
 
+    def _field_to_pb(self, _f, _pb_obj, _dj_field_map):
+        _dj_f_name = self.pb_2_dj_field_map.get(_f.name, _f.name)
+        if _dj_f_name not in _dj_field_map:
+            LOGGER.warning("No such django field: {}".format(_f.name))
+            return
+
+        try:
+            _dj_f_value, _dj_f_type = getattr(self, _dj_f_name), _dj_field_map[
+                _dj_f_name]
+            if not (_dj_f_type.null and _dj_f_value is None):
+                # See if there's a custom serializer for this field relation or not.
+                field_serializers = self._get_serializers(type(_dj_f_type), _f)
+                if field_serializers and field_serializers != self.default_serializers:
+                    self._value_to_protobuf(_pb_obj, _f, type(_dj_f_type), _dj_f_value)
+                else:
+                    if _dj_f_type.is_relation and not issubclass(
+                            type(_dj_f_type), fields.ProtoBufFieldMixin
+                    ):
+                        if self.pb_expand_relation:
+                            self._relation_to_protobuf(
+                                _pb_obj, _f, _dj_f_type, _dj_f_value
+                            )
+                    else:
+                        self._value_to_protobuf(
+                            _pb_obj, _f, type(_dj_f_type), _dj_f_value
+                        )
+        except AttributeError as e:
+            LOGGER.error(
+                "Fail to serialize field: {} for {}. Error: {}".format(
+                    _dj_f_name, self._meta.model, e
+                )
+            )
+            raise DjangoPBModelError(
+                "Can't serialize Model({})'s field: {}. Err: {}".format(
+                    _dj_f_name, self._meta.model, e
+                )
+            )
+
     def to_pb(self):
         """Convert django model to protobuf instance by pre-defined name
 
@@ -228,28 +266,17 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         """
         _pb_obj = self.pb_model()
         _dj_field_map = {f.name: f for f in self._meta.get_fields()}
-        for _f in _pb_obj.DESCRIPTOR.fields:
-            _dj_f_name = self.pb_2_dj_field_map.get(_f.name, _f.name)
-            if _dj_f_name not in _dj_field_map:
-                LOGGER.warning("No such django field: {}".format(_f.name))
-                continue
-            try:
-                _dj_f_value, _dj_f_type = getattr(self, _dj_f_name), _dj_field_map[_dj_f_name]
-                if not (_dj_f_type.null and _dj_f_value is None):
 
-                    # See if there's a custom serializer for this field relation or not
-                    field_serializers = self._get_serializers(type(_dj_f_type), _f)
-                    if field_serializers and field_serializers != self.default_serializers:
-                        self._value_to_protobuf(_pb_obj, _f, type(_dj_f_type), _dj_f_value)
-                    else:
-                        if _dj_f_type.is_relation and not issubclass(type(_dj_f_type), fields.ProtoBufFieldMixin):
-                            if self.pb_expand_relation:
-                                self._relation_to_protobuf(_pb_obj, _f, _dj_f_type, _dj_f_value)
-                        else:
-                            self._value_to_protobuf(_pb_obj, _f, type(_dj_f_type), _dj_f_value)
-            except AttributeError as e:
-                LOGGER.error("Fail to serialize field: {} for {}. Error: {}".format(_dj_f_name, self._meta.model, e))
-                raise DjangoPBModelError("Can't serialize Model({})'s field: {}. Err: {}".format(_dj_f_name, self._meta.model, e))
+        excs = []
+        for _f in _pb_obj.DESCRIPTOR.fields:
+            try:
+                self._field_to_pb(_f, _pb_obj=_pb_obj, _dj_field_map=_dj_field_map)
+            except Exception as exc:
+                excs.append(exc)
+
+        excs_str = "\n".join(map(str, excs))
+        if excs:
+            raise Exception("multiple exceptions found:\n{}".format(excs_str))
 
         LOGGER.info("Coverted Protobuf object: {}".format(_pb_obj))
         return _pb_obj
@@ -316,7 +343,6 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                     funcs = self.pb_2_dj_field_serializers.get(pb_field.name, defaults)
                 else:
                     funcs = defaults
-
 
         if len(funcs) != 2:
             LOGGER.warning(

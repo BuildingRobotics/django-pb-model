@@ -125,3 +125,20 @@ class Item(BaseItem):
 
 class ItemNoExpand(BaseItem):
     comfy = models.ForeignKey(ComfyNoExpand, related_name="items_no_expand")
+
+
+class SubBadFields(ProtoBufMixin, models.Model):
+    pb_model = models_pb2.Sub
+    pb_type_cast = False
+
+    name = models.BooleanField(default=True)
+
+
+class ComfyBadFields(ProtoBufMixin, models.Model):
+    pb_model = models_pb2.ComfyWithGTypes
+
+    number = models.IntegerField(default=0)
+    sub = models.ForeignKey(SubBadFields, null=True)
+    bool_val = models.CharField(max_length=32)
+    str_val = models.IntegerField(null=True, default=0)
+    float_val = models.CharField(max_length=32, default=None)
