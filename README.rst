@@ -19,7 +19,15 @@ Currently support basic value fields and naive relation conversion, including:
 * Foreign Key and Many-to-Many relation
 * `Custom fields`_, ex: JSON
 
-You could examine testcases_ for more details
+You could examine testcases_ for more details. Use runtests.sh for running all or
+individual tests. Examples:
+
+.. code:: shell
+
+	./runtests.sh
+	./runtests.sh ComfyConvertingTest
+	./runtests.sh ComfyConvertingTest.test_with_wrong_types
+
 
 .. _testcases: https://github.com/myyang/django-pb-model/tree/master/pb_model/tests
 .. _Custom fields: https://github.com/myyang/django-pb-model#custom-fields
