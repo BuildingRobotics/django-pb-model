@@ -94,9 +94,6 @@ class ComfyWithEnum(Comfy):
     )
 
     pb_model = models_pb2.ComfyWithEnum
-    pb_2_dj_field_serializers = {
-        ArrayField: (fields.array_to_pb, None),
-    }
 
     work_days = ArrayField(
         blank=True,

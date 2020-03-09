@@ -7,6 +7,7 @@ import six
 
 from django.db import models
 from django.conf import settings
+from django.contrib.postgres import fields as postgres_fields
 
 from google.protobuf.descriptor import FieldDescriptor as FD
 
@@ -169,6 +170,7 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                                fields._datetimefield_from_pb),
         models.UUIDField: (fields._uuid_to_pb,
                            fields._uuid_from_pb),
+        postgres_fields.ArrayField: (fields.array_to_pb, None),
     }  # dj field in key, serializer function pairs in value
     pb_auto_field_type_mapping = {
         FD.TYPE_DOUBLE: models.FloatField,
