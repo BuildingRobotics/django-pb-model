@@ -379,10 +379,10 @@ Django Model:
 
 .. code:: python
 
-    def json_serializer(pb_obj, pb_field, dj_value):
-        setattr(pb_obj, pb_field.name, json.dumps(value))
+    def json_serializer(pb_obj, pb_field, dj_value, **_):
+        setattr(pb_obj, pb_field.name, json.dumps(dj_value))
 
-    def json_deserializer(instance, dj_field_name, pb_field, pb_value):
+    def json_deserializer(instance, dj_field_name, pb_field, pb_value, **_):
         setattr(instance, dj_field_name, json.loads(pb_value))
 
     class WithJSONField(ProtoBufMixin, models.Model):
