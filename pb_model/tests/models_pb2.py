@@ -15,6 +15,7 @@ _sym_db = _symbol_database.Default()
 
 
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
+from google.protobuf import wrappers_pb2 as google_dot_protobuf_dot_wrappers__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
@@ -22,9 +23,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='models',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x1bpb_model/tests/models.proto\x12\x06models\x1a\x1fgoogle/protobuf/timestamp.proto\"#\n\x08Relation\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0b\n\x03num\x18\x02 \x01(\x05\"&\n\x0bM2MRelation\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0b\n\x03num\x18\x02 \x01(\x05\"\xc8\x02\n\x04Main\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x14\n\x0cstring_field\x18\x02 \x01(\t\x12\x15\n\rinteger_field\x18\x03 \x01(\x05\x12\x13\n\x0b\x66loat_field\x18\x04 \x01(\x02\x12+\n\rchoices_field\x18\x05 \x01(\x0e\x32\x14.models.Main.Options\x12\"\n\x08\x66k_field\x18\x06 \x01(\x0b\x32\x10.models.Relation\x12&\n\tm2m_field\x18\x07 \x03(\x0b\x32\x13.models.M2MRelation\x12\x12\n\nbool_field\x18\x08 \x01(\x08\x12\x32\n\x0e\x64\x61tetime_field\x18\t \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"1\n\x07Options\x12\x08\n\x04OPT0\x10\x00\x12\x08\n\x04OPT1\x10\x01\x12\x08\n\x04OPT2\x10\x02\x12\x08\n\x04OPT3\x10\x03\"\xd8\x08\n\x04Root\x12\x14\n\x0cuint32_field\x18\x01 \x01(\r\x12\x13\n\x0bint32_field\x18\x02 \x01(\x05\x12\x14\n\x0cuint64_field\x18\x03 \x01(\x04\x12\x13\n\x0bint64_field\x18\x04 \x01(\x03\x12\x13\n\x0b\x66loat_field\x18\x05 \x01(\x02\x12\x14\n\x0c\x64ouble_field\x18\x06 \x01(\x01\x12\x14\n\x0cstring_field\x18\x07 \x01(\t\x12\x13\n\x0b\x62ytes_field\x18\x08 \x01(\x0c\x12\x12\n\nbool_field\x18\t \x01(\x08\x12 \n\nenum_field\x18\n \x01(\x0e\x32\x0c.models.Enum\x12\x33\n\x0ftimestamp_field\x18\x0b \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x12\n\nuuid_field\x18\x0c \x01(\t\x12\x1d\n\x15repeated_uint32_field\x18\r \x03(\r\x12\x1d\n\x15repeated_string_field\x18\x0e \x03(\t\x12\x1d\n\x15repeated_double_field\x18\x0f \x03(\x01\x12L\n\x1amap_string_to_string_field\x18\x10 \x03(\x0b\x32(.models.Root.MapStringToStringFieldEntry\x12,\n\rmessage_field\x18\x11 \x01(\x0b\x32\x15.models.Root.Embedded\x12\x35\n\x16repeated_message_field\x18\x12 \x03(\x0b\x32\x15.models.Root.Embedded\x12N\n\x1bmap_string_to_message_field\x18\x13 \x03(\x0b\x32).models.Root.MapStringToMessageFieldEntry\x12\x35\n\x11list_field_option\x18\x14 \x01(\x0b\x32\x18.models.Root.ListWrapperH\x00\x12\x33\n\x10map_field_option\x18\x15 \x01(\x0b\x32\x17.models.Root.MapWrapperH\x00\x12\x15\n\rforeign_field\x18\x1e \x03(\x05\x1a=\n\x1bMapStringToStringFieldEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1aU\n\x1cMapStringToMessageFieldEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12$\n\x05value\x18\x02 \x01(\x0b\x32\x15.models.Root.Embedded:\x02\x38\x01\x1a\x18\n\x08\x45mbedded\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x05\x1a\x1b\n\x0bListWrapper\x12\x0c\n\x04\x64\x61ta\x18\x01 \x03(\t\x1aj\n\nMapWrapper\x12/\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32!.models.Root.MapWrapper.DataEntry\x1a+\n\tDataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\t\n\x07options\"\x1e\n\x04Item\x12\n\n\x02id\x18\x01 \x01(\t\x12\n\n\x02nr\x18\x03 \x01(\x05\"\x1f\n\x03Sub\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\"Z\n\x05\x43omfy\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06number\x18\x02 \x01(\t\x12\x1b\n\x05items\x18\x03 \x03(\x0b\x32\x0c.models.Item\x12\x18\n\x03sub\x18\x04 \x01(\x0b\x32\x0b.models.Sub\"l\n\rComfyNoExpand\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06number\x18\x02 \x01(\t\x12%\n\x0fitems_no_expand\x18\x03 \x03(\x0b\x32\x0c.models.Item\x12\x18\n\x03sub\x18\x04 \x01(\x0b\x32\x0b.models.Sub\"\x86\x01\n\rComfyWithEnum\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06number\x18\x02 \x01(\t\x12\x1b\n\x05items\x18\x03 \x03(\x0b\x32\x0c.models.Item\x12\x18\n\x03sub\x18\x04 \x01(\x0b\x32\x0b.models.Sub\x12\"\n\twork_days\x18\x05 \x03(\x0e\x32\x0f.models.Weekday*3\n\x04\x45num\x12\x0f\n\x0b\x45num_NOTSET\x10\x00\x12\x0c\n\x08\x45num_ONE\x10\x01\x12\x0c\n\x08\x45num_TWO\x10\x02*E\n\x07Weekday\x12\x0b\n\x07\x44\x45\x46\x41ULT\x10\x00\x12\n\n\x06MONDAY\x10\x01\x12\x07\n\x03MON\x10\x01\x12\x0b\n\x07TUESDAY\x10\x02\x12\x07\n\x03TUE\x10\x02\x1a\x02\x10\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x1bpb_model/tests/models.proto\x12\x06models\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"#\n\x08Relation\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0b\n\x03num\x18\x02 \x01(\x05\"&\n\x0bM2MRelation\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0b\n\x03num\x18\x02 \x01(\x05\"\xc8\x02\n\x04Main\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x14\n\x0cstring_field\x18\x02 \x01(\t\x12\x15\n\rinteger_field\x18\x03 \x01(\x05\x12\x13\n\x0b\x66loat_field\x18\x04 \x01(\x02\x12+\n\rchoices_field\x18\x05 \x01(\x0e\x32\x14.models.Main.Options\x12\"\n\x08\x66k_field\x18\x06 \x01(\x0b\x32\x10.models.Relation\x12&\n\tm2m_field\x18\x07 \x03(\x0b\x32\x13.models.M2MRelation\x12\x12\n\nbool_field\x18\x08 \x01(\x08\x12\x32\n\x0e\x64\x61tetime_field\x18\t \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"1\n\x07Options\x12\x08\n\x04OPT0\x10\x00\x12\x08\n\x04OPT1\x10\x01\x12\x08\n\x04OPT2\x10\x02\x12\x08\n\x04OPT3\x10\x03\"\xd8\x08\n\x04Root\x12\x14\n\x0cuint32_field\x18\x01 \x01(\r\x12\x13\n\x0bint32_field\x18\x02 \x01(\x05\x12\x14\n\x0cuint64_field\x18\x03 \x01(\x04\x12\x13\n\x0bint64_field\x18\x04 \x01(\x03\x12\x13\n\x0b\x66loat_field\x18\x05 \x01(\x02\x12\x14\n\x0c\x64ouble_field\x18\x06 \x01(\x01\x12\x14\n\x0cstring_field\x18\x07 \x01(\t\x12\x13\n\x0b\x62ytes_field\x18\x08 \x01(\x0c\x12\x12\n\nbool_field\x18\t \x01(\x08\x12 \n\nenum_field\x18\n \x01(\x0e\x32\x0c.models.Enum\x12\x33\n\x0ftimestamp_field\x18\x0b \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x12\n\nuuid_field\x18\x0c \x01(\t\x12\x1d\n\x15repeated_uint32_field\x18\r \x03(\r\x12\x1d\n\x15repeated_string_field\x18\x0e \x03(\t\x12\x1d\n\x15repeated_double_field\x18\x0f \x03(\x01\x12L\n\x1amap_string_to_string_field\x18\x10 \x03(\x0b\x32(.models.Root.MapStringToStringFieldEntry\x12,\n\rmessage_field\x18\x11 \x01(\x0b\x32\x15.models.Root.Embedded\x12\x35\n\x16repeated_message_field\x18\x12 \x03(\x0b\x32\x15.models.Root.Embedded\x12N\n\x1bmap_string_to_message_field\x18\x13 \x03(\x0b\x32).models.Root.MapStringToMessageFieldEntry\x12\x35\n\x11list_field_option\x18\x14 \x01(\x0b\x32\x18.models.Root.ListWrapperH\x00\x12\x33\n\x10map_field_option\x18\x15 \x01(\x0b\x32\x17.models.Root.MapWrapperH\x00\x12\x15\n\rforeign_field\x18\x1e \x03(\x05\x1a=\n\x1bMapStringToStringFieldEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1aU\n\x1cMapStringToMessageFieldEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12$\n\x05value\x18\x02 \x01(\x0b\x32\x15.models.Root.Embedded:\x02\x38\x01\x1a\x18\n\x08\x45mbedded\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x05\x1a\x1b\n\x0bListWrapper\x12\x0c\n\x04\x64\x61ta\x18\x01 \x03(\t\x1aj\n\nMapWrapper\x12/\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32!.models.Root.MapWrapper.DataEntry\x1a+\n\tDataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\t\n\x07options\"\x1e\n\x04Item\x12\n\n\x02id\x18\x01 \x01(\t\x12\n\n\x02nr\x18\x03 \x01(\x05\"\x1f\n\x03Sub\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\"Z\n\x05\x43omfy\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06number\x18\x02 \x01(\t\x12\x1b\n\x05items\x18\x03 \x03(\x0b\x32\x0c.models.Item\x12\x18\n\x03sub\x18\x04 \x01(\x0b\x32\x0b.models.Sub\"l\n\rComfyNoExpand\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06number\x18\x02 \x01(\t\x12%\n\x0fitems_no_expand\x18\x03 \x03(\x0b\x32\x0c.models.Item\x12\x18\n\x03sub\x18\x04 \x01(\x0b\x32\x0b.models.Sub\"\x86\x01\n\rComfyWithEnum\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06number\x18\x02 \x01(\t\x12\x1b\n\x05items\x18\x03 \x03(\x0b\x32\x0c.models.Item\x12\x18\n\x03sub\x18\x04 \x01(\x0b\x32\x0b.models.Sub\x12\"\n\twork_days\x18\x05 \x03(\x0e\x32\x0f.models.Weekday\"\xf1\x01\n\x0f\x43omfyWithGTypes\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06number\x18\x02 \x01(\t\x12\x1b\n\x05items\x18\x03 \x03(\x0b\x32\x0c.models.Item\x12\x18\n\x03sub\x18\x04 \x01(\x0b\x32\x0b.models.Sub\x12,\n\x08\x62ool_val\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.BoolValue\x12-\n\x07str_val\x18\x06 \x01(\x0b\x32\x1c.google.protobuf.StringValue\x12.\n\tfloat_val\x18\x07 \x01(\x0b\x32\x1b.google.protobuf.FloatValue*3\n\x04\x45num\x12\x0f\n\x0b\x45num_NOTSET\x10\x00\x12\x0c\n\x08\x45num_ONE\x10\x01\x12\x0c\n\x08\x45num_TWO\x10\x02*E\n\x07Weekday\x12\x0b\n\x07\x44\x45\x46\x41ULT\x10\x00\x12\n\n\x06MONDAY\x10\x01\x12\x07\n\x03MON\x10\x01\x12\x0b\n\x07TUESDAY\x10\x02\x12\x07\n\x03TUE\x10\x02\x1a\x02\x10\x01\x62\x06proto3')
   ,
-  dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
+  dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,google_dot_protobuf_dot_wrappers__pb2.DESCRIPTOR,])
 
 _ENUM = _descriptor.EnumDescriptor(
   name='Enum',
@@ -47,8 +48,8 @@ _ENUM = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1999,
-  serialized_end=2050,
+  serialized_start=2275,
+  serialized_end=2326,
 )
 _sym_db.RegisterEnumDescriptor(_ENUM)
 
@@ -82,8 +83,8 @@ _WEEKDAY = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=_b('\020\001'),
-  serialized_start=2052,
-  serialized_end=2121,
+  serialized_start=2328,
+  serialized_end=2397,
 )
 _sym_db.RegisterEnumDescriptor(_WEEKDAY)
 
@@ -123,8 +124,8 @@ _MAIN_OPTIONS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=429,
-  serialized_end=478,
+  serialized_start=461,
+  serialized_end=510,
 )
 _sym_db.RegisterEnumDescriptor(_MAIN_OPTIONS)
 
@@ -162,8 +163,8 @@ _RELATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=72,
-  serialized_end=107,
+  serialized_start=104,
+  serialized_end=139,
 )
 
 
@@ -200,8 +201,8 @@ _M2MRELATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=109,
-  serialized_end=147,
+  serialized_start=141,
+  serialized_end=179,
 )
 
 
@@ -288,8 +289,8 @@ _MAIN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=150,
-  serialized_end=478,
+  serialized_start=182,
+  serialized_end=510,
 )
 
 
@@ -326,8 +327,8 @@ _ROOT_MAPSTRINGTOSTRINGFIELDENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1271,
-  serialized_end=1332,
+  serialized_start=1303,
+  serialized_end=1364,
 )
 
 _ROOT_MAPSTRINGTOMESSAGEFIELDENTRY = _descriptor.Descriptor(
@@ -363,8 +364,8 @@ _ROOT_MAPSTRINGTOMESSAGEFIELDENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1334,
-  serialized_end=1419,
+  serialized_start=1366,
+  serialized_end=1451,
 )
 
 _ROOT_EMBEDDED = _descriptor.Descriptor(
@@ -393,8 +394,8 @@ _ROOT_EMBEDDED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1421,
-  serialized_end=1445,
+  serialized_start=1453,
+  serialized_end=1477,
 )
 
 _ROOT_LISTWRAPPER = _descriptor.Descriptor(
@@ -423,8 +424,8 @@ _ROOT_LISTWRAPPER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1447,
-  serialized_end=1474,
+  serialized_start=1479,
+  serialized_end=1506,
 )
 
 _ROOT_MAPWRAPPER_DATAENTRY = _descriptor.Descriptor(
@@ -460,8 +461,8 @@ _ROOT_MAPWRAPPER_DATAENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1539,
-  serialized_end=1582,
+  serialized_start=1571,
+  serialized_end=1614,
 )
 
 _ROOT_MAPWRAPPER = _descriptor.Descriptor(
@@ -490,8 +491,8 @@ _ROOT_MAPWRAPPER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1476,
-  serialized_end=1582,
+  serialized_start=1508,
+  serialized_end=1614,
 )
 
 _ROOT = _descriptor.Descriptor(
@@ -670,8 +671,8 @@ _ROOT = _descriptor.Descriptor(
       name='options', full_name='models.Root.options',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=481,
-  serialized_end=1593,
+  serialized_start=513,
+  serialized_end=1625,
 )
 
 
@@ -708,8 +709,8 @@ _ITEM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1595,
-  serialized_end=1625,
+  serialized_start=1627,
+  serialized_end=1657,
 )
 
 
@@ -746,8 +747,8 @@ _SUB = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1627,
-  serialized_end=1658,
+  serialized_start=1659,
+  serialized_end=1690,
 )
 
 
@@ -798,8 +799,8 @@ _COMFY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1660,
-  serialized_end=1750,
+  serialized_start=1692,
+  serialized_end=1782,
 )
 
 
@@ -850,8 +851,8 @@ _COMFYNOEXPAND = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1752,
-  serialized_end=1860,
+  serialized_start=1784,
+  serialized_end=1892,
 )
 
 
@@ -909,8 +910,81 @@ _COMFYWITHENUM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1863,
-  serialized_end=1997,
+  serialized_start=1895,
+  serialized_end=2029,
+)
+
+
+_COMFYWITHGTYPES = _descriptor.Descriptor(
+  name='ComfyWithGTypes',
+  full_name='models.ComfyWithGTypes',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='models.ComfyWithGTypes.id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='number', full_name='models.ComfyWithGTypes.number', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='items', full_name='models.ComfyWithGTypes.items', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='sub', full_name='models.ComfyWithGTypes.sub', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='bool_val', full_name='models.ComfyWithGTypes.bool_val', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='str_val', full_name='models.ComfyWithGTypes.str_val', index=5,
+      number=6, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='float_val', full_name='models.ComfyWithGTypes.float_val', index=6,
+      number=7, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2032,
+  serialized_end=2273,
 )
 
 _MAIN.fields_by_name['choices_field'].enum_type = _MAIN_OPTIONS
@@ -947,6 +1021,11 @@ _COMFYNOEXPAND.fields_by_name['sub'].message_type = _SUB
 _COMFYWITHENUM.fields_by_name['items'].message_type = _ITEM
 _COMFYWITHENUM.fields_by_name['sub'].message_type = _SUB
 _COMFYWITHENUM.fields_by_name['work_days'].enum_type = _WEEKDAY
+_COMFYWITHGTYPES.fields_by_name['items'].message_type = _ITEM
+_COMFYWITHGTYPES.fields_by_name['sub'].message_type = _SUB
+_COMFYWITHGTYPES.fields_by_name['bool_val'].message_type = google_dot_protobuf_dot_wrappers__pb2._BOOLVALUE
+_COMFYWITHGTYPES.fields_by_name['str_val'].message_type = google_dot_protobuf_dot_wrappers__pb2._STRINGVALUE
+_COMFYWITHGTYPES.fields_by_name['float_val'].message_type = google_dot_protobuf_dot_wrappers__pb2._FLOATVALUE
 DESCRIPTOR.message_types_by_name['Relation'] = _RELATION
 DESCRIPTOR.message_types_by_name['M2MRelation'] = _M2MRELATION
 DESCRIPTOR.message_types_by_name['Main'] = _MAIN
@@ -956,6 +1035,7 @@ DESCRIPTOR.message_types_by_name['Sub'] = _SUB
 DESCRIPTOR.message_types_by_name['Comfy'] = _COMFY
 DESCRIPTOR.message_types_by_name['ComfyNoExpand'] = _COMFYNOEXPAND
 DESCRIPTOR.message_types_by_name['ComfyWithEnum'] = _COMFYWITHENUM
+DESCRIPTOR.message_types_by_name['ComfyWithGTypes'] = _COMFYWITHGTYPES
 DESCRIPTOR.enum_types_by_name['Enum'] = _ENUM
 DESCRIPTOR.enum_types_by_name['Weekday'] = _WEEKDAY
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -1070,6 +1150,13 @@ ComfyWithEnum = _reflection.GeneratedProtocolMessageType('ComfyWithEnum', (_mess
   # @@protoc_insertion_point(class_scope:models.ComfyWithEnum)
   })
 _sym_db.RegisterMessage(ComfyWithEnum)
+
+ComfyWithGTypes = _reflection.GeneratedProtocolMessageType('ComfyWithGTypes', (_message.Message,), {
+  'DESCRIPTOR' : _COMFYWITHGTYPES,
+  '__module__' : 'pb_model.tests.models_pb2'
+  # @@protoc_insertion_point(class_scope:models.ComfyWithGTypes)
+  })
+_sym_db.RegisterMessage(ComfyWithGTypes)
 
 
 _WEEKDAY._options = None

@@ -2,6 +2,8 @@ syntax = "proto3";
 package models;
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
 
 // Relation model for testing
 message Relation {
@@ -127,4 +129,15 @@ message ComfyWithEnum {
     repeated Item items = 3;
     Sub sub = 4;
     repeated Weekday work_days = 5;
+}
+
+
+message ComfyWithGTypes {
+    string id = 1;
+    string number = 2;
+    repeated Item items = 3;
+    Sub sub = 4;
+    google.protobuf.BoolValue bool_val = 5;
+    google.protobuf.StringValue str_val = 6;
+    google.protobuf.FloatValue float_val = 7;
 }

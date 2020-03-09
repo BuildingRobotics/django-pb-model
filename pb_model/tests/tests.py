@@ -250,3 +250,24 @@ class ComfyConvertingTest(TestCase):
 
         comfy1_pb = comfy1.to_pb()
         self.assertEqual(comfy1.work_days, comfy1_pb.work_days)
+
+    def test_with_gtypes(self):
+        sub1 = models.Sub.objects.create(name="test_sub")
+        comfy1 = models.ComfyWithGTypes.objects.create(
+            sub=sub1, bool_val=True, float_val=3.14
+        )
+        comfy1.str_val = None  # unset
+
+        comfy1_pb = comfy1.to_pb()
+        self.assertEqual(comfy1.bool_val, comfy1_pb.bool_val.value)
+        self.assertEqual(
+            round(comfy1.float_val, 2), round(comfy1_pb.float_val.value, 2)
+        )
+        # NOTE(cmiN): Unset values are seen as literal defaults.
+        self.assertEqual("", comfy1_pb.str_val.value)
+
+        comfy2 = models.ComfyWithGTypes()
+        comfy2.from_pb(comfy1_pb)
+        self.assertEqual(comfy1.bool_val, comfy2.bool_val)
+        self.assertEqual(round(comfy1.float_val, 2), round(comfy2.float_val, 2))
+        self.assertEqual("", comfy2.str_val)

@@ -105,6 +105,14 @@ class ComfyWithEnum(Comfy):
     )
 
 
+class ComfyWithGTypes(Comfy):
+    pb_model = models_pb2.ComfyWithGTypes
+
+    bool_val = models.BooleanField()
+    str_val = models.CharField(max_length=32, null=True, default="")
+    float_val = models.FloatField(default=None)
+
+
 class BaseItem(ProtoBufMixin, models.Model):
     pb_model = models_pb2.Item
 

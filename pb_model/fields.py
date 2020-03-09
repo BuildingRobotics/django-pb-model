@@ -35,6 +35,38 @@ FIELD_TYPE_CAST = {
     FD.TYPE_SINT32: int,
     FD.TYPE_SINT64: long,
 }
+GFIELD_TYPE_CAST = {
+    "DoubleValue": float,
+    "FloatValue": float,
+    "Int64Value": long,
+    "UInt64Value": long,
+    "Int32Value": int,
+    "UInt32Value": int,
+    "BoolValue": bool,
+    "StringValue": str,
+    "BytesValue": bytes,
+}
+
+
+def normalize_dj_value(pb_field, dj_field_value, force_type_cast):
+    if force_type_cast and dj_field_value is not None:
+        mtype = pb_field.message_type
+        if mtype:
+            type_cast = GFIELD_TYPE_CAST.get(mtype.name)
+        else:
+            type_cast = FIELD_TYPE_CAST.get(pb_field.type)
+        if type_cast:
+            dj_field_value = type_cast(dj_field_value)
+    return dj_field_value
+
+
+def set_pb_value(pb_obj, pb_field, dj_field_value):
+    mtype = pb_field.message_type
+    if mtype and mtype.full_name.startswith("google.protobuf"):
+        if dj_field_value is not None:
+            getattr(pb_obj, pb_field.name).value = dj_field_value
+    else:
+        setattr(pb_obj, pb_field.name, dj_field_value)
 
 
 def _defaultfield_to_pb(pb_obj, pb_field, dj_field_value, force_type_cast):
@@ -44,22 +76,35 @@ def _defaultfield_to_pb(pb_obj, pb_field, dj_field_value, force_type_cast):
     if sys.version_info < (3,) and type(dj_field_value) is buffer:
         dj_field_value = bytes(dj_field_value)
     try:
-        if force_type_cast:
-            type_cast = FIELD_TYPE_CAST.get(pb_field.type)
-            if type_cast:
-                dj_field_value = type_cast(dj_field_value)
-        setattr(pb_obj, pb_field.name, dj_field_value)
+        dj_field_value = normalize_dj_value(pb_field, dj_field_value, force_type_cast)
+        set_pb_value(pb_obj, pb_field, dj_field_value)
     except TypeError as e:
         e.args = ["Failed to serialize field '{}' - {}".format(pb_field.name, e)]
         raise
+
+
+def normalize_pb_value(pb_field, pb_value, dj_field_type, force_type_cast):
+    mtype = pb_field.message_type
+
+    if force_type_cast:
+        to_py = dj_field_type().to_python
+        if mtype:
+            if mtype.name in GFIELD_TYPE_CAST:
+                return to_py(pb_value.value)
+        else:
+            if pb_field.type in FIELD_TYPE_CAST:
+                return to_py(pb_value)
+
+    if mtype and mtype.full_name.startswith("google.protobuf"):
+        return pb_value.value
+    return pb_value
 
 
 def _defaultfield_from_pb(instance, dj_field_name, pb_field, pb_value, dj_field_type,
                           force_type_cast):
     """ handling any fields setting from protobuf
     """
-    if force_type_cast and pb_field.type in FIELD_TYPE_CAST:
-        pb_value = dj_field_type().to_python(pb_value)
+    pb_value = normalize_pb_value(pb_field, pb_value, dj_field_type, force_type_cast)
     LOGGER.debug("Django Value Field, set dj field: {} = {}".format(dj_field_name, pb_value))
     setattr(instance, dj_field_name, pb_value)
 
