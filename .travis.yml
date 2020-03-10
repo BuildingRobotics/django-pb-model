@@ -45,4 +45,4 @@ after_success:
 notifications:
   email:
     recipients:
-      - ymy1019@gmail.com
+      - cosmin.poieana@comfyapp.com
