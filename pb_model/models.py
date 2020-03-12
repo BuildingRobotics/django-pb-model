@@ -162,7 +162,6 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
 
     pb_model = None
     pb_type_cast = True
-    pb_expand_relation = True
     pb_2_dj_fields = []  # list of pb field names that are mapped, special case pb_2_dj_fields = '__all__'
     pb_2_dj_field_map = {}  # pb field in keys, dj field in value
     pb_2_dj_field_serializers = {
@@ -223,7 +222,7 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         kwargs['force_insert'] = False
         super(ProtoBufMixin, self).save(*args, **kwargs)
 
-    def _field_to_pb(self, _f, _pb_obj, _dj_field_map):
+    def _field_to_pb(self, _f, _pb_obj, _dj_field_map, expand_level):
         _dj_f_name = self.pb_2_dj_field_map.get(_f.name, _f.name)
         if _dj_f_name not in _dj_field_map:
             LOGGER.warning("No such django field: {}".format(_f.name))
@@ -241,9 +240,12 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                     if _dj_f_type.is_relation and not issubclass(
                             type(_dj_f_type), fields.ProtoBufFieldMixin
                     ):
-                        if self.pb_expand_relation:
+                        if expand_level is None or expand_level:
                             self._relation_to_protobuf(
-                                _pb_obj, _f, _dj_f_type, _dj_f_value
+                                _pb_obj, _f, _dj_f_type, _dj_f_value,
+                                expand_level=(
+                                        expand_level - 1
+                                ) if expand_level else expand_level
                             )
                     else:
                         self._value_to_protobuf(
@@ -261,7 +263,7 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                 )
             )
 
-    def to_pb(self):
+    def to_pb(self, expand_level=None):
         """Convert django model to protobuf instance by pre-defined name
 
         :returns: ProtoBuf instance
@@ -272,18 +274,23 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         excs = []
         for _f in _pb_obj.DESCRIPTOR.fields:
             try:
-                self._field_to_pb(_f, _pb_obj=_pb_obj, _dj_field_map=_dj_field_map)
+                self._field_to_pb(
+                    _f, _pb_obj=_pb_obj, _dj_field_map=_dj_field_map,
+                    expand_level=expand_level
+                )
             except Exception as exc:
                 excs.append(exc)
 
         excs_str = "\n".join(map(str, excs))
-        if excs:
+        if excs_str:
             raise Exception("multiple exceptions found:\n{}".format(excs_str))
 
         LOGGER.info("Coverted Protobuf object: {}".format(_pb_obj))
         return _pb_obj
 
-    def _relation_to_protobuf(self, pb_obj, pb_field, dj_field_type, dj_field_value):
+    def _relation_to_protobuf(
+            self, pb_obj, pb_field, dj_field_type, dj_field_value, expand_level
+    ):
         """Handling relation to protobuf
 
         :param pb_obj: protobuf message obj which is return value of to_pb()
@@ -295,11 +302,13 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         """
         LOGGER.debug("Django Relation field, recursively serializing")
         if any([dj_field_type.many_to_many, dj_field_type.one_to_many]):
-            self._m2m_to_protobuf(pb_obj, pb_field, dj_field_value)
+            self._m2m_to_protobuf(
+                pb_obj, pb_field, dj_field_value, expand_level=expand_level
+            )
         else:
             getattr(pb_obj, pb_field.name).CopyFrom(dj_field_value.to_pb())
 
-    def _m2m_to_protobuf(self, pb_obj, pb_field, dj_m2m_field):
+    def _m2m_to_protobuf(self, pb_obj, pb_field, dj_m2m_field, expand_level):
         """
         This is hook function from m2m field to protobuf. By default, we assume
         target message field is "repeated" nested message, ex:
@@ -326,7 +335,7 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
 
         """
         getattr(pb_obj, pb_field.name).extend(
-            [_m2m.to_pb() for _m2m in dj_m2m_field.all()])
+            [_m2m.to_pb(expand_level=expand_level) for _m2m in dj_m2m_field.all()])
 
     def _get_serializers(self, dj_field_type, pb_field=None):
         """Getting the correct serializers for a field type
@@ -384,9 +393,10 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
 
             if _f.message_type is not None:
                 dj_field = _dj_field_map[_dj_f_name]
-                if dj_field.is_relation and not issubclass(type(dj_field), fields.ProtoBufFieldMixin):
-                    if self.pb_expand_relation:
-                        self._protobuf_to_relation(_dj_f_name, dj_field, _f, _v)
+                if dj_field.is_relation and not issubclass(
+                        type(dj_field), fields.ProtoBufFieldMixin
+                ):
+                    self._protobuf_to_relation(_dj_f_name, dj_field, _f, _v)
                     continue
             self._protobuf_to_value(_dj_f_name, type(_dj_f_type), _f, _v)
         LOGGER.info("Coveretd Django model instance: {}".format(self))

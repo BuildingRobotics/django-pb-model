@@ -6,7 +6,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
 
-from pb_model import fields
 from pb_model.models import ProtoBufMixin
 
 from . import models_pb2
@@ -82,11 +81,6 @@ class Comfy(ProtoBufMixin, models.Model):
     sub = models.ForeignKey(Sub, null=True)
 
 
-class ComfyNoExpand(Comfy):
-    pb_model = models_pb2.ComfyNoExpand
-    pb_expand_relation = False
-
-
 class ComfyWithEnum(Comfy):
     WEEKDAYS = (
         (1, "Monday"),
@@ -118,10 +112,6 @@ class BaseItem(ProtoBufMixin, models.Model):
 
 class Item(BaseItem):
     comfy = models.ForeignKey(Comfy, related_name="items")
-
-
-class ItemNoExpand(BaseItem):
-    comfy = models.ForeignKey(ComfyNoExpand, related_name="items_no_expand")
 
 
 class SubBadFields(ProtoBufMixin, models.Model):
