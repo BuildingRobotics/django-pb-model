@@ -113,7 +113,7 @@ class ProtoBufConvertingTest(TestCase):
         Default serialization strategies can be overriden
         """
 
-        def serializer(pb_obj, pb_field, dj_value):
+        def serializer(pb_obj, pb_field, dj_value, **_):
             """
             Serialize NativeRelation as a repeated int32
             """
@@ -230,6 +230,7 @@ class ComfyConvertingTest(TestCase):
 
         comfy_no_expand1_pb = comfy_no_expand1.to_pb(expand_level=0)
         self.assertFalse(comfy_no_expand1_pb.items)
+        self.assertFalse(comfy_no_expand1_pb.sub.name)
 
         item_no_expand1.delete()
         comfy_no_expand1.delete()

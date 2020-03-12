@@ -104,14 +104,11 @@ class ComfyWithGTypes(Comfy):
     float_val = models.FloatField(default=None)
 
 
-class BaseItem(ProtoBufMixin, models.Model):
+class Item(ProtoBufMixin, models.Model):
     pb_model = models_pb2.Item
 
-    nr = models.IntegerField()
-
-
-class Item(BaseItem):
     comfy = models.ForeignKey(Comfy, related_name="items")
+    nr = models.IntegerField()
 
 
 class SubBadFields(ProtoBufMixin, models.Model):

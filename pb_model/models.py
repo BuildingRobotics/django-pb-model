@@ -235,7 +235,10 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                 # See if there's a custom serializer for this field relation or not.
                 field_serializers = self._get_serializers(type(_dj_f_type), _f)
                 if field_serializers and field_serializers != self.default_serializers:
-                    self._value_to_protobuf(_pb_obj, _f, type(_dj_f_type), _dj_f_value)
+                    self._value_to_protobuf(
+                        _pb_obj, _f, type(_dj_f_type), _dj_f_value,
+                        expand_level=expand_level
+                    )
                 else:
                     if _dj_f_type.is_relation and not issubclass(
                             type(_dj_f_type), fields.ProtoBufFieldMixin
@@ -249,7 +252,8 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                             )
                     else:
                         self._value_to_protobuf(
-                            _pb_obj, _f, type(_dj_f_type), _dj_f_value
+                            _pb_obj, _f, type(_dj_f_type), _dj_f_value,
+                            expand_level=expand_level
                         )
         except AttributeError as e:
             LOGGER.error(
@@ -306,7 +310,9 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
                 pb_obj, pb_field, dj_field_value, expand_level=expand_level
             )
         else:
-            getattr(pb_obj, pb_field.name).CopyFrom(dj_field_value.to_pb())
+            getattr(pb_obj, pb_field.name).CopyFrom(dj_field_value.to_pb(
+                expand_level=expand_level
+            ))
 
     def _m2m_to_protobuf(self, pb_obj, pb_field, dj_m2m_field, expand_level):
         """
@@ -325,8 +331,9 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
         }
         ```
 
-        If this is not the format you expected, overwite
-        `_m2m_to_protobuf(self, pb_obj, pb_field, dj_field_value)` by yourself.
+        If this is not the format you expected, overwrite
+        `_m2m_to_protobuf(self, pb_obj, pb_field, dj_field_value, expand_level)`
+        by yourself.
 
         :param pb_obj: intermedia-converting Protobuf obj, which would is return value of to_pb()
         :param pb_field: the Protobuf message field which supposed to assign after converting
@@ -335,7 +342,8 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
 
         """
         getattr(pb_obj, pb_field.name).extend(
-            [_m2m.to_pb(expand_level=expand_level) for _m2m in dj_m2m_field.all()])
+            [_m2m.to_pb(expand_level=expand_level) for _m2m in dj_m2m_field.all()]
+        )
 
     def _get_serializers(self, dj_field_type, pb_field=None):
         """Getting the correct serializers for a field type
@@ -363,7 +371,9 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
 
         return funcs
 
-    def _value_to_protobuf(self, pb_obj, pb_field, dj_field_type, dj_field_value):
+    def _value_to_protobuf(
+            self, pb_obj, pb_field, dj_field_type, dj_field_value, expand_level
+    ):
         """Handling value to protobuf
 
         :param pb_obj: protobuf message obj which is return value of to_pb()
@@ -374,7 +384,7 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
 
         """
         s_funcs = self._get_serializers(dj_field_type, pb_field)
-        s_funcs[0](pb_obj, pb_field, dj_field_value)
+        s_funcs[0](pb_obj, pb_field, dj_field_value, expand_level=expand_level)
 
     def from_pb(self, _pb_obj):
         """Convert given protobuf obj to mixin Django model
