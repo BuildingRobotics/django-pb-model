@@ -69,7 +69,7 @@ def set_pb_value(pb_obj, pb_field, dj_field_value):
         setattr(pb_obj, pb_field.name, dj_field_value)
 
 
-def _defaultfield_to_pb(pb_obj, pb_field, dj_field_value, force_type_cast):
+def _defaultfield_to_pb(pb_obj, pb_field, dj_field_value, force_type_cast, **_):
     """ handling any fields conversion to protobuf
     """
     LOGGER.debug("Django Value field, assign proto msg field: {} = {}".format(pb_field.name, dj_field_value))
@@ -109,7 +109,7 @@ def _defaultfield_from_pb(instance, dj_field_name, pb_field, pb_value, dj_field_
     setattr(instance, dj_field_name, pb_value)
 
 
-def _datetimefield_to_pb(pb_obj, pb_field, dj_field_value):
+def _datetimefield_to_pb(pb_obj, pb_field, dj_field_value, **_):
     """handling Django DateTimeField field
 
     :param pb_obj: protobuf message obj which is return value of to_pb()
@@ -137,7 +137,7 @@ def _datetimefield_from_pb(instance, dj_field_name, pb_field, pb_value, **_):
     setattr(instance, dj_field_name, dt)
 
 
-def _uuid_to_pb(pb_obj, pb_field, dj_field_value):
+def _uuid_to_pb(pb_obj, pb_field, dj_field_value, **_):
     """handling Django UUIDField field
 
     :param pb_obj: protobuf message obj which is return value of to_pb()
@@ -158,12 +158,12 @@ def _uuid_from_pb(instance, dj_field_name, pb_field, pb_value, **_):
     setattr(instance, dj_field_name, uuid.UUID(pb_value))
 
 
-def _filefield_to_pb(pb_obj, pb_field, dj_value):
+def _filefield_to_pb(pb_obj, pb_field, dj_value, force_type_cast, **_):
     try:
         value = str(dj_value)
     except ValueError:
         value = ''
-    _defaultfield_to_pb(pb_obj, pb_field, value)
+    _defaultfield_to_pb(pb_obj, pb_field, value, force_type_cast=force_type_cast)
 
 
 def array_to_pb(pb_obj, pb_field, dj_field_value, **_):
@@ -172,7 +172,7 @@ def array_to_pb(pb_obj, pb_field, dj_field_value, **_):
 
 class ProtoBufFieldMixin(object):
     @staticmethod
-    def to_pb(pb_obj, pb_field, dj_field_value):
+    def to_pb(pb_obj, pb_field, dj_field_value, **_):
         raise NotImplementedError()
 
     @staticmethod
@@ -202,7 +202,7 @@ class JSONField(models.TextField):
 
 class ArrayField(JSONField, ProtoBufFieldMixin):
     @staticmethod
-    def to_pb(pb_obj, pb_field, dj_field_value):
+    def to_pb(pb_obj, pb_field, dj_field_value, **_):
         getattr(pb_obj, pb_field.name).extend(dj_field_value)
 
     @staticmethod
@@ -212,7 +212,7 @@ class ArrayField(JSONField, ProtoBufFieldMixin):
 
 class MapField(JSONField, ProtoBufFieldMixin):
     @staticmethod
-    def to_pb(pb_obj, pb_field, dj_field_value):
+    def to_pb(pb_obj, pb_field, dj_field_value, **_):
         getattr(pb_obj, pb_field.name).update(dj_field_value)
 
     @staticmethod
@@ -263,8 +263,10 @@ class RepeatedMessageField(models.ManyToManyField, ProtoBufFieldMixin):
         getattr(instance, self.attname)
 
     @staticmethod
-    def to_pb(pb_obj, pb_field, dj_field_value):
-        getattr(pb_obj, pb_field.name).extend([m.to_pb() for m in dj_field_value])
+    def to_pb(pb_obj, pb_field, dj_field_value, expand_level, **_):
+        getattr(pb_obj, pb_field.name).extend(
+            [m.to_pb(expand_level=expand_level) for m in dj_field_value]
+        )
 
     @staticmethod
     def from_pb(instance, dj_field_name, pb_field, pb_value, **_):
@@ -322,9 +324,11 @@ class MessageMapField(models.ManyToManyField, ProtoBufFieldMixin):
         getattr(instance, self.attname)
 
     @staticmethod
-    def to_pb(pb_obj, pb_field, dj_field_value):
+    def to_pb(pb_obj, pb_field, dj_field_value, expand_level, **_):
         for key in dj_field_value:
-            getattr(pb_obj, pb_field.name)[key].CopyFrom(dj_field_value[key].to_pb())
+            getattr(pb_obj, pb_field.name)[key].CopyFrom(
+                dj_field_value[key].to_pb(expand_level=expand_level)
+            )
 
     @staticmethod
     def from_pb(instance, dj_field_name, pb_field, pb_value, **_):

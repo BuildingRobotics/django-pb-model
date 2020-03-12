@@ -6,7 +6,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
 
-from pb_model import fields
 from pb_model.models import ProtoBufMixin
 
 from . import models_pb2
@@ -82,11 +81,6 @@ class Comfy(ProtoBufMixin, models.Model):
     sub = models.ForeignKey(Sub, null=True)
 
 
-class ComfyNoExpand(Comfy):
-    pb_model = models_pb2.ComfyNoExpand
-    pb_expand_relation = False
-
-
 class ComfyWithEnum(Comfy):
     WEEKDAYS = (
         (1, "Monday"),
@@ -94,9 +88,6 @@ class ComfyWithEnum(Comfy):
     )
 
     pb_model = models_pb2.ComfyWithEnum
-    pb_2_dj_field_serializers = {
-        ArrayField: (fields.array_to_pb, None),
-    }
 
     work_days = ArrayField(
         blank=True,
@@ -113,18 +104,11 @@ class ComfyWithGTypes(Comfy):
     float_val = models.FloatField(default=None)
 
 
-class BaseItem(ProtoBufMixin, models.Model):
+class Item(ProtoBufMixin, models.Model):
     pb_model = models_pb2.Item
 
-    nr = models.IntegerField()
-
-
-class Item(BaseItem):
     comfy = models.ForeignKey(Comfy, related_name="items")
-
-
-class ItemNoExpand(BaseItem):
-    comfy = models.ForeignKey(ComfyNoExpand, related_name="items_no_expand")
+    nr = models.IntegerField()
 
 
 class SubBadFields(ProtoBufMixin, models.Model):

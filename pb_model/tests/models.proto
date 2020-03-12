@@ -88,7 +88,6 @@ message Root {
   }
 }
 
-
 message Item {
     string id = 1;
     int32 nr = 3;
@@ -115,14 +114,6 @@ message Comfy {
     Sub sub = 4;
 }
 
-message ComfyNoExpand {
-    string id = 1;
-    string number = 2;
-    repeated Item items_no_expand = 3;
-    Sub sub = 4;
-}
-
-
 message ComfyWithEnum {
     string id = 1;
     string number = 2;
@@ -130,7 +121,6 @@ message ComfyWithEnum {
     Sub sub = 4;
     repeated Weekday work_days = 5;
 }
-
 
 message ComfyWithGTypes {
     string id = 1;

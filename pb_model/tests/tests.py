@@ -113,7 +113,7 @@ class ProtoBufConvertingTest(TestCase):
         Default serialization strategies can be overriden
         """
 
-        def serializer(pb_obj, pb_field, dj_value):
+        def serializer(pb_obj, pb_field, dj_value, **_):
             """
             Serialize NativeRelation as a repeated int32
             """
@@ -208,41 +208,40 @@ class ComfyConvertingTest(TestCase):
         self.assertEqual(10, comfy1.number)
         self.assertEqual(5, item1.nr)
 
-        comfy1_pb = comfy1.to_pb()
+        comfy1_pb = comfy1.to_pb(expand_level=1)
         self.assertEqual("1", comfy1_pb.id)
         self.assertEqual("10", comfy1_pb.number)
-        if models.Comfy.pb_expand_relation:
-            self.assertEqual(5, comfy1_pb.items[0].nr)
-            self.assertEqual("test_sub", comfy1_pb.sub.name)
+        self.assertEqual(5, comfy1_pb.items[0].nr)
+        self.assertEqual("test_sub", comfy1_pb.sub.name)
 
         comfy2 = models.Comfy()
         comfy2.from_pb(comfy1_pb)
         self.assertEqual(1, comfy2.id)
         self.assertEqual(10, comfy2.number)
-        if models.Comfy.pb_expand_relation:
-            self.assertEqual(5, comfy2.items.get().nr)
-            self.assertEqual("test_sub", comfy2.sub.name)
+        self.assertEqual(5, comfy2.items.get().nr)
+        self.assertEqual("test_sub", comfy2.sub.name)
 
     def test_no_relation_expansion(self):
         sub1 = models.Sub.objects.create(name="test_sub")
-        comfy_no_expand1 = models.ComfyNoExpand.objects.create(number=11, sub=sub1)
-        item_no_expand1 = models.ItemNoExpand.objects.create(
+        comfy_no_expand1 = models.Comfy.objects.create(number=11, sub=sub1)
+        item_no_expand1 = models.Item.objects.create(
             comfy=comfy_no_expand1, nr=6
         )
 
-        comfy_no_expand1_pb = comfy_no_expand1.to_pb()
-        self.assertFalse(comfy_no_expand1_pb.items_no_expand)
+        comfy_no_expand1_pb = comfy_no_expand1.to_pb(expand_level=0)
+        self.assertFalse(comfy_no_expand1_pb.items)
+        self.assertFalse(comfy_no_expand1_pb.sub.name)
 
         item_no_expand1.delete()
         comfy_no_expand1.delete()
         del item_no_expand1, comfy_no_expand1
 
-        comfy_no_expand2 = models.ComfyNoExpand()
+        comfy_no_expand2 = models.Comfy()
         comfy_no_expand2.from_pb(comfy_no_expand1_pb)
         with self.assertRaises(ObjectDoesNotExist):
             # FIXME(cmiN): Check `_protobuf_to_m2m` hook if you want on-the-fly
             #  full population of the model.
-            comfy_no_expand2.items_no_expand.get()
+            comfy_no_expand2.items.get()
 
     def test_with_enum(self):
         comfy1 = models.ComfyWithEnum.objects.create(number=12)
