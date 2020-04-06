@@ -275,6 +275,7 @@ class ComfyConvertingTest(TestCase):
         self.assertEqual("", comfy2.str_val)
 
     def test_with_wrong_types(self):
+        # Complain about non-convertible integer `id` and boolean `name`.
         sub1 = models.SubBadFields.objects.create(name=True)
         exc_tpl = "type {}, but expected one of: bytes, unicode"
         exp_sep = r"[\s\S]+?"
@@ -290,12 +291,13 @@ class ComfyConvertingTest(TestCase):
         with self.assertRaisesRegexp(Exception, sub_exp):
             comfy1.to_pb()
 
-        sub1.id, sub1.name = list(map(str, (sub1.id, sub1.name)))  # get past above error
+        # Get past above error.
+        sub1.id, sub1.name = list(map(str, (sub1.id, sub1.name)))
         with self.assertRaisesRegexp(
                 Exception,
                 exp_sep.join([
                     r"multiple exceptions found",
-                    r"could not convert string to float: not-a-float"
+                    r"could not convert string to float: '?not-a-float'?"
                 ])
         ):
             comfy1.to_pb()

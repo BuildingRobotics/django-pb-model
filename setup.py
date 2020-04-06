@@ -9,7 +9,8 @@ except ImportError:
     from distutils.core import setup, find_packages
 
 
-with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
+fopen = lambda path: open(os.path.join(os.path.dirname(__file__), path))
+with fopen('README.rst') as readme:
     README = readme.read()
 
 # allow setup.py to be run from any path
@@ -26,11 +27,7 @@ setup(
     description='Protobuf mixin for Django model',
     author='myyang',
     author_email='ymy1019@gmail.com',
-    install_requires=[
-        'django>=1.11',
-        'protobuf>=3.1',
-        'six>=1.13.0',
-    ],
+    install_requires=fopen('requirements.txt').read().strip().splitlines(),
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
