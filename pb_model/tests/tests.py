@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import datetime
 import uuid
 
@@ -12,6 +13,8 @@ from google.protobuf.descriptor import FieldDescriptor
 
 from pb_model.models import ProtoBufMixin
 from . import models, models_pb2
+from six.moves import map
+from six.moves import range
 
 
 class ProtoBufConvertingTest(TestCase):
@@ -287,7 +290,7 @@ class ComfyConvertingTest(TestCase):
         with self.assertRaisesRegexp(Exception, sub_exp):
             comfy1.to_pb()
 
-        sub1.id, sub1.name = map(str, (sub1.id, sub1.name))  # get past above error
+        sub1.id, sub1.name = list(map(str, (sub1.id, sub1.name)))  # get past above error
         with self.assertRaisesRegexp(
                 Exception,
                 exp_sep.join([

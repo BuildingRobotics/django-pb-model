@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
 import os
 try:
     from setuptools import find_packages, setup
@@ -28,6 +29,7 @@ setup(
     install_requires=[
         'django>=1.11',
         'protobuf>=3.1',
+        'six>=1.13.0',
     ],
     classifiers=[
         'Environment :: Web Environment',

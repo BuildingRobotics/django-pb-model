@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
 import sys
 import logging
 import json
@@ -25,21 +26,21 @@ PB_FIELD_TYPE_MESSAGE_MAP = FD.MAX_TYPE + 6
 FIELD_TYPE_CAST = {
     FD.TYPE_DOUBLE: float,
     FD.TYPE_FLOAT: float,
-    FD.TYPE_INT64: long,
-    FD.TYPE_UINT64: long,
+    FD.TYPE_INT64: int,
+    FD.TYPE_UINT64: int,
     FD.TYPE_INT32: int,
     FD.TYPE_BOOL: bool,
     FD.TYPE_STRING: str,
     FD.TYPE_BYTES: bytes,
     FD.TYPE_UINT32: int,
     FD.TYPE_SINT32: int,
-    FD.TYPE_SINT64: long,
+    FD.TYPE_SINT64: int,
 }
 GFIELD_TYPE_CAST = {
     "DoubleValue": float,
     "FloatValue": float,
-    "Int64Value": long,
-    "UInt64Value": long,
+    "Int64Value": int,
+    "UInt64Value": int,
     "Int32Value": int,
     "UInt32Value": int,
     "BoolValue": bool,

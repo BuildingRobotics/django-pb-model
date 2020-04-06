@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
 import functools
 import logging
 import six
@@ -12,6 +13,7 @@ from django.contrib.postgres import fields as postgres_fields
 from google.protobuf.descriptor import FieldDescriptor as FD
 
 from . import fields
+from six.moves import map
 
 
 logging.basicConfig()
@@ -36,7 +38,7 @@ class Meta(type(models.Model)):
 
         if self.pb_model is not None:
             if self.pb_2_dj_fields == '__all__':
-                self.pb_2_dj_fields = self.pb_model.DESCRIPTOR.fields_by_name.keys()
+                self.pb_2_dj_fields = list(self.pb_model.DESCRIPTOR.fields_by_name.keys())
 
             for pb_field_name in self.pb_2_dj_fields:
                 pb_field_descriptor = self.pb_model.DESCRIPTOR.fields_by_name[pb_field_name]
@@ -205,10 +207,7 @@ class ProtoBufMixin(six.with_metaclass(Meta, models.Model)):
     def __init__(self, *args, **kwargs):
         super(ProtoBufMixin, self).__init__(*args, **kwargs)
 
-        self.default_serializers = tuple(map(
-            lambda func: functools.partial(func, force_type_cast=self.pb_type_cast),
-            self.default_serializers
-        ))
+        self.default_serializers = tuple([functools.partial(func, force_type_cast=self.pb_type_cast) for func in self.default_serializers])
         for m2m_field in self._meta.many_to_many:
             if issubclass(type(m2m_field), fields.ProtoBufFieldMixin):
                 m2m_field.load(self)
