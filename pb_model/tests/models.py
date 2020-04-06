@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
+from __future__ import absolute_import
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone

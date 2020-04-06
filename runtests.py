@@ -6,6 +6,7 @@ Testcase runner:
 copied from http://stackoverflow.com/a/3851333
 """
 
+from __future__ import absolute_import
 import os
 import sys
 
